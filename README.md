@@ -3,7 +3,7 @@ Python Puzzle.
 
 Have a look to the image added at root level and shown in my Wiki page.
 
-https://github.com/vxm/ppz.wiki.git
+https://github.com/vxm/ppz/wiki
 
 How it works:
 
