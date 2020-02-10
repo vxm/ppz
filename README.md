@@ -3,6 +3,8 @@ Python Puzzle.
 
 Have a look to the image added at root level and shown in my Wiki page.
 
+https://github.com/vxm/ppz.wiki.git
+
 How it works:
 
 To solve the puzzle, the black piece needs to leave by red door.
