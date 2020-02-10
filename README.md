@@ -22,6 +22,9 @@ The rules are:
 
   • Only the black piece can go through the red door.
   
+  
+Solution:
+  
 
  To execute the solution, open menu and enter key "a", as per menu instructions this will execute the A* algorithm which solves the problem. The heuristic value have two stages, the first phase and clue for the algorithm is, that the black piece needs to be under the double size horizontal white piece. And the second stage or objective is found when the black piece is placed to in the only possible position for it to leave the board.
  
