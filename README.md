@@ -1,7 +1,9 @@
 # ppz
 Python Puzzle.
 
-Have a look to the image added at root level and shown in my Wiki page.
+This project creates a game, which can be played once the python script is executed and solves it at any stage.
+
+To understand the puzzle; have a look to the image added at root level and shown in my Wiki page.
 
 https://github.com/vxm/ppz/wiki
 
