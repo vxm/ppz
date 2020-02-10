@@ -1,8 +1,9 @@
 # ppz
 Python Puzzle.
 
-Have a look to the image added at root level.
+Have a look to the image added at root level and shown in my Wiki page.
 
+How it works:
 
 To solve the puzzle, the black piece needs to leave by red door.
 
