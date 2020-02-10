@@ -1,11 +1,14 @@
 # ppz
-Python Puzzle Solve
+Python Puzzle.
 
 Have a look to the image added at root level.
 
+
 To solve the puzzle, the black piece needs to leave by red door.
 
+
 The rules are:
+
   • A piece may only move vertically or horizontally into empty
   space next to it. 
 
