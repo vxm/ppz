@@ -1,13 +1,18 @@
 # ppz
 Python Puzzle.
 
-This project creates a game, which can be played once the python script is executed and solves it at any stage.
+ This project creates a KLOTSKI game board to be played on a shell and gives you a chance to solve it at any stage of the board.
 
-To understand the puzzle; have a look to the image added at root level and shown in my Wiki page.
+ To understand the puzzle; have a look to the image added at root level and shown in my Wiki page.
 
 https://github.com/vxm/ppz/wiki
 
-How it works:
+ I prepared this solution script inside Blender 3D software (which has a Python API) so it would give animation keys to each piece each step. The render solution can be found here;
+ 
+ https://www.youtube.com/watch?v=cS4G4g7pAXw
+
+
+ How it works:
 
 To solve the puzzle, the black piece needs to leave by red door.
 
