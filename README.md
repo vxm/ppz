@@ -12,7 +12,7 @@ https://github.com/vxm/ppz/wiki
  https://www.youtube.com/watch?v=cS4G4g7pAXw
 
 
- How it works:
+ How does the Klotski puzzle work:
 
 To solve the puzzle, the black piece needs to leave by red door.
 
