@@ -22,10 +22,24 @@ class Board:
         ['O', 'd', 'e', 'e', 'f', 'O'],
         ['O', 'd', 'g', 'h', 'f', 'O'],
         ['O', 'i', '0', '0', 'j', 'O'],
-        ['O', 'O', 'Z', 'Z', 'O', 'O']]
+        ['O', 'O', 'O', 'O', 'O', 'O']]
         self.pieces = {}
         self.computePieces()
         self.oppositeDirection = {'u':'d','d':'u','l':'r','r':'l'}
+
+    def computePieces(self):
+        """
+        computes the pieces and where they can be found
+        """
+        for line in self.board:
+            for p in line:
+                if p.islower():
+                    self.pieces[p] = []
+
+        for y, line in enumerate(self.board):
+            for x, element in enumerate(line):
+                if element in self.pieces:
+                    self.pieces[element].append([x, y])
 
     def piece_hash(self, piece):
         ln = len(self.board)
@@ -79,20 +93,6 @@ class Board:
         returns True if this board got its objective.
         """
         return self.defective == 0
-
-    def computePieces(self):
-        """
-        computes the pieces and where they can be found
-        """
-        for line in self.board:
-            for p in line:
-                if p.islower():
-                    self.pieces[p] = []
-
-        for y, line in enumerate(self.board):
-            for x, element in enumerate(line):
-                if element in self.pieces:
-                    self.pieces[element].append([x, y])
 
     def printState(self):
         """
@@ -162,7 +162,7 @@ class Board:
 
     def move(self, pieceName, direction):
         """
-        Updates two elements on each piece movement.
+        Updates two elements on each call.
         - each coordinate of the piece
         - the board itself.
         """
