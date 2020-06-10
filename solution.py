@@ -40,24 +40,32 @@ class Board:
         coordinate by length of the board adding the second coordinate,
         to ensure there won't be a clash.
         """
-        ln = len(self.board)
-        b = (self.pieces['b'][0][0] * ln) + (self.pieces['b'][0][1])
-        a = (self.pieces['a'][0][0] * ln) + (self.pieces['a'][0][1])
-        c = (self.pieces['c'][0][0] * ln) + (self.pieces['c'][0][1])
-        d = (self.pieces['d'][0][0] * ln) + (self.pieces['d'][0][1])
-        f = (self.pieces['f'][0][0] * ln) + (self.pieces['f'][0][1])
-        e = (self.pieces['e'][0][0] * ln) + (self.pieces['e'][0][1])
-        g = (self.pieces['g'][0][0] * ln) + (self.pieces['g'][0][1])
-        h = (self.pieces['h'][0][0] * ln) + (self.pieces['h'][0][1])
-        i = (self.pieces['i'][0][0] * ln) + (self.pieces['i'][0][1])
-        j = (self.pieces['j'][0][0] * ln) + (self.pieces['j'][0][1])
+        # unique ones
+        g = self.piece_hash('g')
+        h = self.piece_hash('h')
+        i = self.piece_hash('i')
+        j = self.piece_hash('j')
+
+        # two vertical
+        a = self.piece_hash('a')
+        c = self.piece_hash('c')
+        d = self.piece_hash('d')
+        f = self.piece_hash('f')
+
+        # two horizontal
+        e = self.piece_hash('e')
+    
+        # two by two
+        b = self.piece_hash('b')
         return hash((g + h + i + j, a + c + d + f, e, b))
         
     @property
     def defective(self):
         """
-        returns an amount representing how far is this board from
-        the final solution
+        returns the value accumulating two factors representing
+        how far is this board from the final solution:
+        - how far is b from final position
+        - how much e is down of b
         """
         first_corner = self.pieces['b'][0]
         b_obj = [2, 4]
