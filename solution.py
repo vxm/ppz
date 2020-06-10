@@ -25,6 +25,7 @@ class Board:
         ['X', 'X', 'Z', 'Z', 'X', 'X']]
         self.pieces = {}
         self.computePieces()
+        self.oppositeDirection = {'u':'d','d':'u','l':'r','r':'l'}
 
     @property
     def hash(self):
@@ -175,19 +176,6 @@ class Board:
         for c in self.pieces[pieceName]:
             self.setE(c[0], c[1], pieceName)
 
-    def oppositeDirection(self, d):
-        """
-        returns the opposite direction
-        """
-        if d is 'u':
-            return 'd'
-        if d is 'd':
-            return 'u'
-        if d is 'l':
-            return 'r'
-        if d is 'r':
-            return 'l'
-
     def simulateMove(self, pieceName, direction):
         """
         emulates the move requested to identify
@@ -196,7 +184,7 @@ class Board:
         self.move(pieceName, direction)
         h = self.hash
         d = self.done
-        self.move(pieceName, self.oppositeDirection(direction))
+        self.move(pieceName, self.oppositeDirection[direction])
         return h, d
 
 class PotentialMoves:
