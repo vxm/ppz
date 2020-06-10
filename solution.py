@@ -16,16 +16,20 @@ class Board:
     Therefore the first objective is to move Piece E above B
     """
     def __init__(self):
-        self.board = [['X', 'X', 'X', 'X', 'X', 'X'],
-        ['X', 'a', 'b', 'b', 'c', 'X'],
-        ['X', 'a', 'b', 'b', 'c', 'X'],
-        ['X', 'd', 'e', 'e', 'f', 'X'],
-        ['X', 'd', 'g', 'h', 'f', 'X'],
-        ['X', 'i', '0', '0', 'j', 'X'],
-        ['X', 'X', 'Z', 'Z', 'X', 'X']]
+        self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
+        ['O', 'a', 'b', 'b', 'c', 'O'],
+        ['O', 'a', 'b', 'b', 'c', 'O'],
+        ['O', 'd', 'e', 'e', 'f', 'O'],
+        ['O', 'd', 'g', 'h', 'f', 'O'],
+        ['O', 'i', '0', '0', 'j', 'O'],
+        ['O', 'O', 'Z', 'Z', 'O', 'O']]
         self.pieces = {}
         self.computePieces()
         self.oppositeDirection = {'u':'d','d':'u','l':'r','r':'l'}
+
+    def piece_hash(self, piece):
+        ln = len(self.board)
+        return (self.pieces[piece][0][0] * ln) + (self.pieces[piece][0][1])
 
     @property
     def hash(self):
