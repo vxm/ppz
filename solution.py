@@ -17,10 +17,10 @@ class Board:
     """
     def __init__(self):
         self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
-                      ['O', 'd', 'b', 'b', 'c', 'O'],
-                      ['O', 'd', 'b', 'b', 'c', 'O'],
-                      ['O', 'a', 'e', 'e', 'f', 'O'],
-                      ['O', 'a', 'g', 'h', 'f', 'O'],
+                      ['O', 'a', 'b', 'b', 'c', 'O'],
+                      ['O', 'a', 'b', 'b', 'c', 'O'],
+                      ['O', 'd', 'e', 'e', 'f', 'O'],
+                      ['O', 'd', 'g', 'h', 'f', 'O'],
                       ['O', 'i', '0', '0', 'j', 'O'],
                       ['O', 'O', 'O', 'O', 'O', 'O']]
         self.pieces = {}
@@ -299,19 +299,16 @@ class PotentialMoves:
                 self.board.move(mv[0], mv[1])
                 moveInstructions = [mv]
                 parentIt = self.parent
-                currentMove = self.moves
                 while parentIt:
                     # while still don't reach the root
                     if parentIt.moves:
-                        if parentIt.moves == currentMove:
-                            moveInstructions[0].append('t')
-                        else:
-                            moveInstructions.insert(0, parentIt.moves)
-                        currentMove = parentIt.moves
+                        moveInstructions.insert(0, parentIt.moves)
                     parentIt = parentIt.parent
 
                 for step, m in enumerate(moveInstructions):
                     print ("Step", (step + 1), " piece:", m[0], "goes", PotentialMoves.names[m[1]])
+                    direction = PotentialMoves.names[m[1]]
+                    print(direction)
 
                 return [[None, mv]]
 
@@ -432,6 +429,3 @@ def playBoard():
             myboard.printState()
 
 playBoard()
-# b = Board()
-# b.printState()
-# print(b.posibleMoves())
