@@ -17,15 +17,16 @@ class Board:
     """
     def __init__(self):
         self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
-        ['O', 'a', 'b', 'b', 'c', 'O'],
-        ['O', 'a', 'b', 'b', 'c', 'O'],
-        ['O', 'd', 'e', 'e', 'f', 'O'],
-        ['O', 'd', 'g', 'h', 'f', 'O'],
-        ['O', 'i', '0', '0', 'j', 'O'],
-        ['O', 'O', 'O', 'O', 'O', 'O']]
+                      ['O', 'd', 'b', 'b', 'c', 'O'],
+                      ['O', 'd', 'b', 'b', 'c', 'O'],
+                      ['O', 'a', 'e', 'e', 'f', 'O'],
+                      ['O', 'a', 'g', 'h', 'f', 'O'],
+                      ['O', 'i', '0', '0', 'j', 'O'],
+                      ['O', 'O', 'O', 'O', 'O', 'O']]
         self.pieces = {}
         self.computePieces()
-        self.oppositeDirection = {'u':'d','d':'u','l':'r','r':'l'}
+        self.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
+                                'ut':'dt','dt':'ut','lt':'rt','rt':'lt' }
 
     def computePieces(self):
         """
