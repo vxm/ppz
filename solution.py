@@ -42,9 +42,8 @@ class Board:
                 if element in self.pieces:
                     self.pieces[element].append([x, y])
 
-    def piece_hash(self, piece):
-        ln = len(self.board)
-        return (self.pieces[piece][0][0] * ln) + (self.pieces[piece][0][1])
+    def pieceHash(self, piece):
+        return (self.pieces[piece][0][0] * len(self.board)) + self.pieces[piece][0][1]
 
     @property
     def hash(self):
@@ -56,22 +55,22 @@ class Board:
         to ensure there won't be a clash.
         """
         # unique ones
-        g = self.piece_hash('g')
-        h = self.piece_hash('h')
-        i = self.piece_hash('i')
-        j = self.piece_hash('j')
+        g = self.pieceHash('g')
+        h = self.pieceHash('h')
+        i = self.pieceHash('i')
+        j = self.pieceHash('j')
 
         # two vertical
-        a = self.piece_hash('a')
-        c = self.piece_hash('c')
-        d = self.piece_hash('d')
-        f = self.piece_hash('f')
+        a = self.pieceHash('a')
+        c = self.pieceHash('c')
+        d = self.pieceHash('d')
+        f = self.pieceHash('f')
 
         # two horizontal
-        e = self.piece_hash('e')
+        e = self.pieceHash('e')
     
         # two by two
-        b = self.piece_hash('b')
+        b = self.pieceHash('b')
         return hash((g + h + i + j, a + c + d + f, e, b))
         
     @property
@@ -79,8 +78,8 @@ class Board:
         """
         returns the value accumulating two factors representing
         how far is this board from the final solution:
-        - how far is b from final position
-        - how much e is down of b
+            - how far is b from final position
+            - how much e up relative to b
         """
         first_corner = self.pieces['b'][0]
         b_obj = [2, 4]
@@ -91,7 +90,7 @@ class Board:
     @property
     def done(self):
         """
-        returns True if this board got its objective.
+        returns True if this board got to its objective.
         """
         return self.defective == 0
 
@@ -111,7 +110,7 @@ class Board:
         
     def setE(self, x, y, v):
         """
-        Returns the element at the given coordinates.
+        Sets the element at the given coordinates.
         """
         self.board[y][x] = v
 
@@ -132,17 +131,40 @@ class Board:
         {'u': True, 'd': False, 'l': False, 'r': False}, True
         for a piece that can only move up, can be moved (last ret)
         """
-        moves = {'u': False, 'd': False, 'l': False, 'r': False}
+        moves = {'u': False, 'd': False, 'l': False, 'r': False,
+                'ut': False, 'dt': False, 'lt': False, 'rt': False}
 
         moves['l'] = all([self.empty(c[0] - 1, c[1])
-        or self.e(c[0] - 1, c[1]) == piece for c in coordn])
+            or self.e(c[0] - 1, c[1]) == piece for c in coordn])
+
+        if moves['l']:
+            moves['lt'] = all([self.empty(c[0] - 2, c[1])
+                or self.e(c[0] - 2, c[1]) == piece for c in coordn])
+
         moves['r'] = all([self.empty(c[0] + 1, c[1])
-        or self.e(c[0] + 1, c[1]) == piece for c in coordn])
+            or self.e(c[0] + 1, c[1]) == piece for c in coordn])
+
+        if moves['r']:
+            moves['rt'] = all([self.empty(c[0] + 2, c[1])
+                or self.e(c[0] + 2, c[1]) == piece for c in coordn])
+        
         moves['u'] = all([self.empty(c[0], c[1] - 1)
-        or self.e(c[0], c[1] - 1) == piece for c in coordn])
+            or self.e(c[0], c[1] - 1) == piece for c in coordn])
+
+        if moves['u']:
+            moves['ut'] =  all([self.empty(c[0], c[1] - 2)
+                or self.e(c[0], c[1] - 2) == piece for c in coordn])
+
         moves['d'] = all([self.empty(c[0], c[1] + 1)
-        or self.e(c[0], c[1] + 1) == piece for c in coordn])
-        can_move = any([moves['l'], moves['r'], moves['u'], moves['d']])
+            or self.e(c[0], c[1] + 1) == piece for c in coordn])
+
+        if moves['d']:
+            moves['dt']= all([self.empty(c[0], c[1] + 2)
+                or self.e(c[0], c[1] + 2) == piece for c in coordn])
+
+        can_move = any([moves['l'], moves['r'], moves['u'], moves['d'],
+                        moves['lt'], moves['rt'], moves['ut'], moves['dt']])
+
         return moves, can_move
 
     def posibleMoves(self):
@@ -157,15 +179,14 @@ class Board:
         for p, c in self.pieces.items():
             pmvs, can_move = self.candidateMoves(p, c)
             if can_move:
-                positives = [k for k, v in pmvs.items() if v]
-                moves[p] = positives
+                moves[p] = [k for k, v in pmvs.items() if v]
         return moves
 
     def move(self, pieceName, direction):
         """
         Updates two elements on each call.
-        - each coordinate of the piece
         - the board itself.
+        - each coordinate of the piece
         """
         for c in self.pieces[pieceName]:
             self.setE(c[0], c[1], '0')
@@ -185,6 +206,22 @@ class Board:
         if direction == 'r':
             for coor in self.pieces[pieceName]:
                 coor[0] += 1
+
+        if direction == 'ut':
+            for coor in self.pieces[pieceName]:
+                coor[1] -= 2
+
+        if direction == 'dt':
+            for coor in self.pieces[pieceName]:
+                coor[1] += 2
+
+        if direction == 'lt':
+            for coor in self.pieces[pieceName]:
+                coor[0] -= 2
+
+        if direction == 'rt':
+            for coor in self.pieces[pieceName]:
+                coor[0] += 2
 
         for c in self.pieces[pieceName]:
             self.setE(c[0], c[1], pieceName)
@@ -208,7 +245,8 @@ class PotentialMoves:
     """
     # a set of hashes for all the seen boards
     seen = set()
-    names = {'d': 'down', 'u': 'up', 'l': 'left', 'r': 'right', 't': 'twice'}
+    names = {'d': 'down', 'u': 'up', 'l': 'left', 'r': 'right',
+            'dt': 'down twice', 'ut': 'up twice', 'lt': 'left twice', 'rt': 'right twice',}
 
     def __init__(self, board, parent=None, mv=None):
         self.board = board
@@ -273,10 +311,7 @@ class PotentialMoves:
                     parentIt = parentIt.parent
 
                 for step, m in enumerate(moveInstructions):
-                    if len(m) < 3:
-                        print ("Step", (step + 1), " piece:",m[0], "goes", PotentialMoves.names[m[1]])
-                    else:
-                        print ("Step", (step + 1), " piece:",m[0], "goes", PotentialMoves.names[m[1]],"twice.")
+                    print ("Step", (step + 1), " piece:", m[0], "goes", PotentialMoves.names[m[1]])
 
                 return [[None, mv]]
 
@@ -397,3 +432,6 @@ def playBoard():
             myboard.printState()
 
 playBoard()
+# b = Board()
+# b.printState()
+# print(b.posibleMoves())
