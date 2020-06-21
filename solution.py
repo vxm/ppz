@@ -237,7 +237,7 @@ class Board:
         self.move(pieceName, self.oppositeDirection[direction])
         return h, d
 
-class PotentialMoves:
+class moveNode:
     """
     A class representing all possible moves in a board
     at a given state.
@@ -246,14 +246,15 @@ class PotentialMoves:
     # a set of hashes for all the seen boards
     seen = set()
     names = {'d': 'down', 'u': 'up', 'l': 'left', 'r': 'right',
-            'dt': 'down twice', 'ut': 'up twice', 'lt': 'left twice', 'rt': 'right twice',}
+            'dt': 'down twice', 'ut': 'up twice', 'lt': 'left twice', 'rt': 'right twice'}
 
-    def __init__(self, board, parent=None, mv=None):
+    def __init__(self, board, parent=None, moves=None):
         self.board = board
-        PotentialMoves.seen.add(self.board.hash)
-        self.clarifyOptions()
         self.parent = parent
-        self.moves = mv
+        self.moves = moves
+        moveNode.seen.add(board.hash)
+        self.playableMoves = []
+        self.flattenMoves()
         if parent is not None:
             self._deep = parent.deep + 1
         else:
@@ -264,19 +265,18 @@ class PotentialMoves:
         return self._deep
 
     @property
-    def f(self):
-        return self.deep + self.board.defective
-    
-    def clarifyOptions(self):
+    def penalty(self):
+        return (self.deep*10) + self.board.defective
+
+    def flattenMoves(self):
         """
-        Obtains the options on the current board
-        and prepares them within the required format
+        Obtains the possible moves on the board
+        and stripes them on unit possible moves.
         """
-        self.sequence = []
-        for k, directions in self.board.posibleMoves().items():
-            for m in directions:
-                self.sequence.append([None, [k, m]])
-    
+        for pieceName, directions in self.board.posibleMoves().items():
+            for direction in directions:
+                self.playableMoves.append([None, [pieceName, direction]])
+
     def run(self):
         """
         runs through the sequence of possible moves, and
@@ -284,21 +284,21 @@ class PotentialMoves:
         finally returns the movements that could happen at
         this moment for the current board.
         """
-        for i, (_, mv) in enumerate(self.sequence):
+        for i, (_, (piece, direction)) in enumerate(self.playableMoves):
             # we simulate the move in place
-            hash, done = self.board.simulateMove(mv[0], mv[1])
+            hash, done = self.board.simulateMove(piece, direction)
             # if the result of the similation was
             # previously visited we skip this step
-            if hash in PotentialMoves.seen:
+            if hash in moveNode.seen:
                 continue
             if done:
                 # a bit of a celebration here!.
-                print('-----------*****************************-----------')
+                print('\n\n-----------*****************************-----------')
                 print('-----------* This solves the problem! **-----------')
-                print('-----------*****************************-----------')
-                self.board.move(mv[0], mv[1])
-                moveInstructions = [mv]
-                parentIt = self.parent
+                print('-----------*****************************-----------\n\n')
+                self.board.move(piece, direction)
+                moveInstructions = [[piece,direction]]
+                parentIt = self
                 while parentIt:
                     # while still don't reach the root
                     if parentIt.moves:
@@ -306,19 +306,17 @@ class PotentialMoves:
                     parentIt = parentIt.parent
 
                 for step, m in enumerate(moveInstructions):
-                    print ("Step", (step + 1), " piece:", m[0], "goes", PotentialMoves.names[m[1]])
-                    direction = PotentialMoves.names[m[1]]
-                    print(direction)
+                    print ("Step", (step + 1), " piece:", m[0], "goes", moveNode.names[m[1]])
 
-                return [[None, mv]]
+                return [[None, [piece,direction]]]
 
-            PotentialMoves.seen.add(hash)
+            moveNode.seen.add(hash)
 
             newBoard = copy.deepcopy(self.board)
-            newBoard.move(mv[0], mv[1])
-            self.sequence[i][0] = PotentialMoves(newBoard, self, mv)
+            newBoard.move(piece, direction)
+            self.playableMoves[i][0] = moveNode(newBoard, self, [piece,direction])
 
-        cleanedSequence = [s for s in self.sequence if s[0] is not None]
+        cleanedSequence = [s for s in self.playableMoves if s[0] is not None]
         return cleanedSequence
 
 def playBoard():
