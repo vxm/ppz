@@ -26,7 +26,7 @@ class Board:
                       ['O', 'O', 'O', 'O', 'O', 'O']]
         self.pieces = {}
         self.computePieces()
-        self.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
+        Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
                                 'ut':'dt','dt':'ut','lt':'rt','rt':'lt' }
 
     def computePieces(self):
@@ -46,8 +46,8 @@ class Board:
     def pieceHash(self, piece):
         if piece in self.pieces.keys():
             pieceCoordinates = self.pieces[piece][0]
-            return hash((pieceCoordinates[0], pieceCoordinates[1]))
-        return 0
+            return hash((pieceCoordinates[0]*9757157, pieceCoordinates[1]))
+        return 1234567
 
     @property
     def hash(self):
@@ -75,7 +75,7 @@ class Board:
 
         # two by two
         b = self.pieceHash('b')
-        return hash((g + h + i + j, a + c + d + f, e, b))
+        return hash((g * h * i * j, a * c * d * f, e, b))
 
     @property
     def defective(self):
@@ -242,7 +242,7 @@ class Board:
         h = self.hash
         d = self.done
         # undo
-        self.move(pieceName, self.oppositeDirection[direction])
+        self.move(pieceName, Board.oppositeDirection[direction])
         return h, d
 
 class moveNode:
@@ -274,7 +274,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep*10) + self.board.defective
+        return (self.deep) + self.board.defective
 
     def flattenMoves(self):
         """
