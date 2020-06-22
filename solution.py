@@ -1,4 +1,5 @@
 import copy
+import math
 import random
 
 # global variable to define the amount of random
@@ -43,7 +44,10 @@ class Board:
                     self.pieces[element].append([x, y])
 
     def pieceHash(self, piece):
-        return (self.pieces[piece][0][0] * len(self.board)) + self.pieces[piece][0][1]
+        if piece in self.pieces.keys():
+            pieceCoordinates = self.pieces[piece][0]
+            return hash((pieceCoordinates[0], pieceCoordinates[1]))
+        return 0
 
     @property
     def hash(self):
@@ -68,11 +72,11 @@ class Board:
 
         # two horizontal
         e = self.pieceHash('e')
-    
+
         # two by two
         b = self.pieceHash('b')
         return hash((g + h + i + j, a + c + d + f, e, b))
-        
+
     @property
     def defective(self):
         """
@@ -82,10 +86,11 @@ class Board:
             - how much e up relative to b
         """
         first_corner = self.pieces['b'][0]
-        b_obj = [2, 4]
-        b_manhattan = 30 * abs(b_obj[0] - first_corner[0]) + 313 * abs(b_obj[1] - first_corner[1])
-        e_y_def = max(self.pieces['e'][0][1] - 3, 0) * 137
-        return b_manhattan + e_y_def
+        objetive_position = [2, len(self.board) - 3]
+
+        b_distance = math.sqrt((objetive_position[0] - first_corner[0])**2 + (objetive_position[1] - first_corner[1])**2)
+
+        return b_distance
 
     @property
     def done(self):
@@ -107,7 +112,7 @@ class Board:
         Returns the element at the given coordinates.
         """
         return self.board[y][x]
-        
+
     def setE(self, x, y, v):
         """
         Sets the element at the given coordinates.
@@ -147,7 +152,7 @@ class Board:
         if moves['r']:
             moves['rt'] = all([self.empty(c[0] + 2, c[1])
                 or self.e(c[0] + 2, c[1]) == piece for c in coordn])
-        
+
         moves['u'] = all([self.empty(c[0], c[1] - 1)
             or self.e(c[0], c[1] - 1) == piece for c in coordn])
 
@@ -177,9 +182,9 @@ class Board:
         """
         moves = {}
         for p, c in self.pieces.items():
-            pmvs, can_move = self.candidateMoves(p, c)
-            if can_move:
-                moves[p] = [k for k, v in pmvs.items() if v]
+            allMoves, canMove = self.candidateMoves(p, c)
+            if canMove:
+                moves[p] = [k for k, v in allMoves.items() if v]
         return moves
 
     def move(self, pieceName, direction):
@@ -190,7 +195,7 @@ class Board:
         """
         for c in self.pieces[pieceName]:
             self.setE(c[0], c[1], '0')
-        
+
         if direction == 'u':
             for coor in self.pieces[pieceName]:
                 coor[1] -= 1
@@ -231,9 +236,12 @@ class Board:
         emulates the move requested to identify
         properties of the possible table.
         """
+        # do
         self.move(pieceName, direction)
+        # store temp data
         h = self.hash
         d = self.done
+        # undo
         self.move(pieceName, self.oppositeDirection[direction])
         return h, d
 
@@ -277,7 +285,7 @@ class moveNode:
             for direction in directions:
                 self.playableMoves.append([None, [pieceName, direction]])
 
-    def run(self):
+    def nodeMoves(self):
         """
         runs through the sequence of possible moves, and
         if there is novelty, creates this object for the move.
@@ -310,8 +318,6 @@ class moveNode:
 
                 return [[None, [piece,direction]]]
 
-            moveNode.seen.add(hash)
-
             newBoard = copy.deepcopy(self.board)
             newBoard.move(piece, direction)
             self.playableMoves[i][0] = moveNode(newBoard, self, [piece,direction])
@@ -339,8 +345,8 @@ def playBoard():
             \n\t(a) A* solution.\
             \n\t(s) Show board.")
         print("---------------------------")
-        inputOption = input("Option:")
-        
+        # inputOption = input("Option:")
+        inputOption = 'a'
         # manual solution
         if inputOption == 'm':
             myboard.printState()
@@ -393,36 +399,23 @@ def playBoard():
                 st += 1
             myboard.printState()
             print("Board shuffled", st, "times.")
-        
-        # full tree solution
-        if inputOption == 'd':
-            queue = [[PotentialMoves(myboard), ['', '']]]
-            found = False
-            while len(queue) and not found:
-                pm = queue.pop(0)[0]
-                nss = pm.run()
-                for ns in nss:
-                    if not ns[0]:
-                        pm.board.printState()
-                        found = True
-                        break
-                    queue.append(ns)
-        
+
         # educated guess solution
         if inputOption == 'a':
-            queue = [[PotentialMoves(myboard), ['', '']]]
+            queue = [[moveNode(myboard), ['', '']]]
             found = False
             while len(queue) and not found:
-                pm = queue.pop(0)[0]
-                nss = pm.run()
-                for ns in nss:
+                queuedNode = queue.pop(0)[0]
+
+                for ns in queuedNode.nodeMoves():
                     if not ns[0]:
-                        pm.board.printState()
+                        print('\n\n')
+                        queuedNode.board.printState()
                         found = True
                         return
                     queue.append(ns)
-                queue.sort(key=lambda pm: pm[0].f)
-        
+                queue.sort(key=lambda x: x[0].penalty)
+
         if inputOption == 's':
             myboard.printState()
 
