@@ -78,6 +78,15 @@ class Board:
         return hash((g * h * i * j, a * c * d * f, e, b))
 
     @property
+    def b_defective(self):
+        """
+        returns how far is b from final position
+        """
+        b_first_corner = self.pieces['b'][0]
+        objetive_position = [2, len(self.board) - 3]
+        return math.sqrt((objetive_position[0] - b_first_corner[0])**2 + (objetive_position[1] - b_first_corner[1])**2)
+
+    @property
     def defective(self):
         """
         returns the value accumulating two factors representing
@@ -85,19 +94,19 @@ class Board:
             - how far is b from final position
             - how much e up relative to b
         """
-        first_corner = self.pieces['b'][0]
-        objetive_position = [2, len(self.board) - 3]
-
-        b_distance = math.sqrt((objetive_position[0] - first_corner[0])**2 + (objetive_position[1] - first_corner[1])**2)
-
-        return b_distance
+        defective = self.b_defective
+        if 'e' in self.pieces.keys():
+            b_first_corner = self.pieces['b'][0]
+            e_first_corner = self.pieces['e'][0]
+            defective += 50 * max(b_first_corner[1] - e_first_corner[1], 0)
+        return defective
 
     @property
     def done(self):
         """
         returns True if this board got to its objective.
         """
-        return self.defective == 0
+        return self.b_defective == 0.0
 
     def printState(self):
         """
