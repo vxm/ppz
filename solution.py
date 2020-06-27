@@ -98,7 +98,7 @@ class Board:
         if 'e' in self.pieces.keys():
             b_first_corner = self.pieces['b'][0]
             e_first_corner = self.pieces['e'][0]
-            defective += 50 * max(b_first_corner[1] - e_first_corner[1], 0)
+            defective += max(b_first_corner[1] - e_first_corner[1], 0)
         return defective
 
     @property
@@ -283,7 +283,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/20.0) + self.board.defective
+        return (self.deep/200.0) + self.board.defective
 
     def flattenMoves(self):
         """
@@ -301,6 +301,8 @@ class moveNode:
         finally returns the movements that could happen at
         this moment for the current board.
         """
+
+        # print("new child")
         for i, (_, (piece, direction)) in enumerate(self.playableMoves):
             # we simulate the move in place
             hash, done = self.board.simulateMove(piece, direction)
@@ -308,6 +310,8 @@ class moveNode:
             # previously visited we skip this step
             if hash in moveNode.seen:
                 continue
+
+            # print("\tnovel move: "+ piece +" "+direction)
             if done:
                 # a bit of a celebration here!.
                 print('\n\n-----------*****************************-----------')
@@ -421,9 +425,12 @@ def playBoard():
                         print('\n\n')
                         queuedNode.board.printState()
                         found = True
+                        print("Seen size "+ str(len(moveNode.seen)))
                         return
                     queue.append(ns)
                 queue.sort(key=lambda x: x[0].penalty)
+
+        return
 
         if inputOption == 's':
             myboard.printState()

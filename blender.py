@@ -348,7 +348,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep) + self.board.defective
+        return (self.deep/200.0) + self.board.defective
 
     def flattenMoves(self):
         """
