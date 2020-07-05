@@ -1,4 +1,5 @@
 import copy
+import functools
 import math
 import random
 
@@ -17,31 +18,43 @@ class Board:
     Therefore the first objective is to move Piece E above B
     """
     def __init__(self):
-        self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
-                      ['O', 'a', 'b', 'b', 'c', 'O'],
-                      ['O', 'a', 'b', 'b', 'c', 'O'],
-                      ['O', 'd', 'e', 'e', 'f', 'O'],
-                      ['O', 'd', 'g', 'h', 'f', 'O'],
-                      ['O', 'i', '0', '0', 'j', 'O'],
-                      ['O', 'O', 'O', 'O', 'O', 'O']]
+        self.board = [['O', 'O', 'O', 'O', 'O', 'O', 'O'],
+                      ['O', 'a', 'b', 'b', 'b', 'c', 'O'],
+                      ['O', 'a', 'a', 'd', 'c', 'c', 'O'],
+                      ['O', 'e', 'e', 'd', 'g', 'g', 'O'],
+                      ['O', 'j', 'j', 'h', 'f', 'f', 'O'],
+                      ['O', 'i', 'i', 'h', 'k', 'k', 'O'],
+                      ['O', '0', '0', '0', '0', '0', 'O'],
+                      ['O', 'O', 'O', 'O', 'O', 'O', 'O']]
+        self.resetCache()
         self.pieces = {}
+        self.hashes = {}
         self.computePieces()
         Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
                                 'ut':'dt','dt':'ut','lt':'rt','rt':'lt' }
 
+    def resetCache(self):
+        self._defective = 10000000
+
     def computePieces(self):
         """
-        computes the pieces and where they can be found
+        computes the pieces and where they can be found.
         """
+        # initialising the pieces dictionary with
+        # empty arrays
         for line in self.board:
             for p in line:
                 if p.islower():
                     self.pieces[p] = []
 
+        # adding coordinates to those pieces.
         for y, line in enumerate(self.board):
             for x, element in enumerate(line):
                 if element in self.pieces:
                     self.pieces[element].append([x, y])
+
+        for k in self.pieces.keys():
+            self.hashes[k] = self.pieceHash(k)
 
     def pieceHash(self, piece):
         if piece in self.pieces.keys():
@@ -58,24 +71,18 @@ class Board:
         coordinate by length of the board adding the second coordinate,
         to ensure there won't be a clash.
         """
-        # unique ones
-        g = self.pieceHash('g')
-        h = self.pieceHash('h')
-        i = self.pieceHash('i')
-        j = self.pieceHash('j')
+        # vertical
+        v = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['d','h']])
+        # # horizontal
+        h = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['e','g','j','f','i','k']])
+        # # unique
+        # u = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['l','m']])
 
-        # two vertical
-        a = self.pieceHash('a')
-        c = self.pieceHash('c')
-        d = self.pieceHash('d')
-        f = self.pieceHash('f')
+        return hash((self.hashes['a'],
+                        self.hashes['b'],
+                        self.hashes['c'],
+                        v,h))
 
-        # two horizontal
-        e = self.pieceHash('e')
-
-        # two by two
-        b = self.pieceHash('b')
-        return hash((g * h * i * j, a * c * d * f, e, b))
 
     @property
     def b_defective(self):
@@ -83,7 +90,7 @@ class Board:
         returns how far is b from final position
         """
         b_first_corner = self.pieces['b'][0]
-        objetive_position = [2, len(self.board) - 3]
+        objetive_position = [2, len(self.board) - 2]
         return math.sqrt((objetive_position[0] - b_first_corner[0])**2 + (objetive_position[1] - b_first_corner[1])**2)
 
     @property
@@ -94,11 +101,16 @@ class Board:
             - how far is b from final position
             - how much e up relative to b
         """
+        if self._defective != 10000000:
+            return self._defective
+
         defective = self.b_defective
-        if 'e' in self.pieces.keys():
-            b_first_corner = self.pieces['b'][0]
-            e_first_corner = self.pieces['e'][0]
-            defective += max(b_first_corner[1] - e_first_corner[1], 0)
+        # for p in ['a','c','e','g','j','f','i','k']:
+        #     if p in self.pieces.keys():
+        #         b_first_corner = self.pieces['b'][0]
+        #         e_first_corner = self.pieces[p][0]
+        #         defective += max(b_first_corner[1] - e_first_corner[1], 0)
+        self._defective = defective
         return defective
 
     @property
@@ -135,14 +147,23 @@ class Board:
         """
         return self.e(x, y) == '0'
 
-    def candidateMoves(self, piece, coordn):
+    # def maxCoordinates(self, piece, direction):
+    #     coordinates = self.pieces[piece]
+    #     verticals = set([x[1] for x in coordinates])
+
+    #     if direction == 'l':
+
+
+    #         for c in coordinates:
+
+    def piecePossibleMoves(self, piece, coordn):
         """
         returns whether or not the is empty spaces in all directions
         relative to coordn (coordinates)
         example of input coordn.
         [[2, 1], [3, 1], [2, 2], [3, 2]]
         example of returned value:
-        {'u': True, 'd': False, 'l': False, 'r': False}, True
+            {'u': True, 'd': False, 'l': False, 'r': False}, True
         for a piece that can only move up, can be moved (last ret)
         """
         moves = {'u': False, 'd': False, 'l': False, 'r': False,
@@ -170,7 +191,7 @@ class Board:
                 or self.e(c[0], c[1] - 2) == piece for c in coordn])
 
         moves['d'] = all([self.empty(c[0], c[1] + 1)
-            or self.e(c[0], c[1] + 1) == piece for c in coordn])
+            or                self.e(c[0], c[1] + 1) == piece for c in coordn])
 
         if moves['d']:
             moves['dt']= all([self.empty(c[0], c[1] + 2)
@@ -191,7 +212,7 @@ class Board:
         """
         moves = {}
         for p, c in self.pieces.items():
-            allMoves, canMove = self.candidateMoves(p, c)
+            allMoves, canMove = self.piecePossibleMoves(p, c)
             if canMove:
                 moves[p] = [k for k, v in allMoves.items() if v]
         return moves
@@ -240,6 +261,8 @@ class Board:
         for c in self.pieces[pieceName]:
             self.setE(c[0], c[1], pieceName)
 
+        self.hashes[pieceName] = self.pieceHash(pieceName)
+
     def simulateMove(self, pieceName, direction):
         """
         emulates the move requested to identify
@@ -283,7 +306,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/200.0) + self.board.defective
+        return (self.deep/10.0) + self.board.defective
 
     def flattenMoves(self):
         """
@@ -332,6 +355,7 @@ class moveNode:
                 return [[None, [piece,direction]]]
 
             newBoard = copy.deepcopy(self.board)
+            newBoard.resetCache()
             newBoard.move(piece, direction)
             self.playableMoves[i][0] = moveNode(newBoard, self, [piece,direction])
 
@@ -358,8 +382,8 @@ def playBoard():
             \n\t(a) A* solution.\
             \n\t(s) Show board.")
         print("---------------------------")
-        # inputOption = input("Option:")
-        inputOption = 'a'
+        inputOption = input("Option:")
+        # inputOption = 'a'
         # manual solution
         if inputOption == 'm':
             myboard.printState()
@@ -415,21 +439,32 @@ def playBoard():
 
         # educated guess solution
         if inputOption == 'a':
+            minIndex = 0
             queue = [[moveNode(myboard), ['', '']]]
-            found = False
-            while len(queue) and not found:
-                queuedNode = queue.pop(0)[0]
+            while queue:
+                queuedNode = queue.pop(minIndex)[0]
 
                 for ns in queuedNode.nodeMoves():
                     if not ns[0]:
                         print('\n\n')
                         queuedNode.board.printState()
-                        found = True
-                        print("Seen size "+ str(len(moveNode.seen)))
+                        print("Seen size " + str(len(moveNode.seen)))
                         return
-                    queue.append(ns)
-                queue.sort(key=lambda x: x[0].penalty)
+                    else:
+                        queue.append(ns)
 
+                if queue:
+                    i = 0
+                    minIndex = 0
+                    minPenalty  = queue[0][0].penalty
+                    for n in queue:
+                        if n[0].penalty<minPenalty:
+                            minPenalty = n[0].penalty
+                            minIndex = i
+                        i+=1
+
+                # queue.sort(key=lambda x: x[0].penalty)
+        print("No solution found")
         return
 
         if inputOption == 's':
