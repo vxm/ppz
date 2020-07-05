@@ -1,5 +1,6 @@
 import copy
 import functools
+import hashlib
 import math
 import random
 
@@ -18,14 +19,13 @@ class Board:
     Therefore the first objective is to move Piece E above B
     """
     def __init__(self):
-        self.board = [['O', 'O', 'O', 'O', 'O', 'O', 'O'],
-                      ['O', 'a', 'b', 'b', 'b', 'c', 'O'],
-                      ['O', 'a', 'a', 'd', 'c', 'c', 'O'],
-                      ['O', 'e', 'e', 'd', 'g', 'g', 'O'],
-                      ['O', 'j', 'j', 'h', 'f', 'f', 'O'],
-                      ['O', 'i', 'i', 'h', 'k', 'k', 'O'],
-                      ['O', '0', '0', '0', '0', '0', 'O'],
-                      ['O', 'O', 'O', 'O', 'O', 'O', 'O']]
+        self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
+                      ['O', 'a', 'b', 'b', 'c', 'O'],
+                      ['O', 'a', 'b', 'b', 'c', 'O'],
+                      ['O', 'd', 'e', 'e', 'f', 'O'],
+                      ['O', 'd', 'g', 'h', 'f', 'O'],
+                      ['O', 'i', '0', '0', 'j', 'O'],
+                      ['O', 'O', 'O', 'O', 'O', 'O']]
         self.resetCache()
         self.pieces = {}
         self.hashes = {}
@@ -57,10 +57,7 @@ class Board:
             self.hashes[k] = self.pieceHash(k)
 
     def pieceHash(self, piece):
-        if piece in self.pieces.keys():
-            pieceCoordinates = self.pieces[piece][0]
-            return hash((pieceCoordinates[0]*9757157, pieceCoordinates[1]))
-        return 1234567
+        return id(self.pieces[piece])
 
     @property
     def hash(self):
@@ -72,17 +69,20 @@ class Board:
         to ensure there won't be a clash.
         """
         # vertical
-        v = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['d','h']])
+        # v = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['d','h']])
         # # horizontal
-        h = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['e','g','j','f','i','k']])
+        h = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['a','c','d','f']])
         # # unique
-        # u = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['l','m']])
+        u = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['i','g','h','j']])
 
-        return hash((self.hashes['a'],
-                        self.hashes['b'],
-                        self.hashes['c'],
-                        v,h))
+        bh = 73180
 
+        bh *= u + 10000000
+        bh *= h + 10000000
+        bh *= self.hashes['b'] + 10000000
+        bh *= self.hashes['e'] + 10000000
+
+        return bh
 
     @property
     def b_defective(self):
@@ -306,7 +306,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/10.0) + self.board.defective
+        return (self.deep/100.0) + self.board.defective
 
     def flattenMoves(self):
         """
