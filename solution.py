@@ -1,3 +1,4 @@
+import bisect
 import copy
 import functools
 import math
@@ -59,8 +60,8 @@ class Board:
     def pieceHash(self, piece):
         if piece in self.pieces.keys():
             pieceCoordinates = self.pieces[piece][0]
-            return hash((pieceCoordinates[0], pieceCoordinates[1]))
-        return 1234565517
+            return hash((pieceCoordinates[0]*9757157, pieceCoordinates[1]))
+        return 1234567
 
     @property
     def hash(self):
@@ -102,7 +103,7 @@ class Board:
         returns how far is b from final position
         """
         b_first_corner = self.pieces['b'][0]
-        objetive_position = [2, len(self.board) - 2]
+        objetive_position = [2, len(self.board) - 3]
         return math.sqrt((objetive_position[0] - b_first_corner[0])**2 + (objetive_position[1] - b_first_corner[1])**2)
 
     @property
@@ -184,18 +185,18 @@ class Board:
         moves['d'] = all([self.empty(c[0], c[1] + 1)
             or self.e(c[0], c[1] + 1) == piece for c in coordn])
 
-        # if moves['l']:
-        #     moves['lt'] = all([self.empty(c[0] - 2, c[1])
-        #         or self.e(c[0] - 2, c[1]) == piece for c in coordn])
-        # if moves['r']:
-        #     moves['rt'] = all([self.empty(c[0] + 2, c[1])
-        #         or self.e(c[0] + 2, c[1]) == piece for c in coordn])
-        # if moves['u']:
-        #     moves['ut'] =  all([self.empty(c[0], c[1] - 2)
-        #         or self.e(c[0], c[1] - 2) == piece for c in coordn])
-        # if moves['d']:
-        #     moves['dt']= all([self.empty(c[0], c[1] + 2)
-        #         or self.e(c[0], c[1] + 2) == piece for c in coordn])
+        if moves['l']:
+            moves['lt'] = all([self.empty(c[0] - 2, c[1])
+                or self.e(c[0] - 2, c[1]) == piece for c in coordn])
+        if moves['r']:
+            moves['rt'] = all([self.empty(c[0] + 2, c[1])
+                or self.e(c[0] + 2, c[1]) == piece for c in coordn])
+        if moves['u']:
+            moves['ut'] =  all([self.empty(c[0], c[1] - 2)
+                or self.e(c[0], c[1] - 2) == piece for c in coordn])
+        if moves['d']:
+            moves['dt']= all([self.empty(c[0], c[1] + 2)
+                or self.e(c[0], c[1] + 2) == piece for c in coordn])
 
         can_move = any([moves['l'], moves['r'], moves['u'], moves['d'],
                         moves['lt'], moves['rt'], moves['ut'], moves['dt']])
@@ -306,7 +307,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/50.0) + self.board.defective
+        return (self.deep/1.0) + self.board.defective
 
     def flattenMoves(self):
         """
@@ -324,14 +325,14 @@ class moveNode:
         finally returns the movements that could happen at
         this moment for the current board.
         """
-
+        nodes = []
         # print("new child")
         for i, (_, (piece, direction)) in enumerate(self.playableMoves):
             # we simulate the move in place
-            hash, done = self.board.simulateMove(piece, direction)
+            hashr, done = self.board.simulateMove(piece, direction)
             # if the result of the similation was
             # previously visited we skip this step
-            if hash in moveNode.seen:
+            if hashr in moveNode.seen:
                 continue
 
             # print("\tnovel move: "+ piece +" "+direction)
@@ -350,17 +351,26 @@ class moveNode:
                     parentIt = parentIt.parent
 
                 for step, m in enumerate(moveInstructions):
-                    print ("Step", (step + 1), " piece:", m[0], "goes", moveNode.names[m[1]])
+                    print ("Step", (step + 1), " piece:", m[0], "goes ", moveNode.names[m[1]])
 
-                return [[None, [piece,direction]]]
+                return None
 
             newBoard = copy.deepcopy(self.board)
             newBoard.resetCache()
             newBoard.move(piece, direction)
-            self.playableMoves[i][0] = moveNode(newBoard, self, [piece,direction])
+            nodes.append( moveNode(newBoard, self, [piece, direction]) )
 
-        cleanedSequence = [s for s in self.playableMoves if s[0] is not None]
-        return cleanedSequence
+        return nodes
+
+@functools.total_ordering
+class Node:
+    def __init__(self, node):
+        self.node = node
+        self.penalty = node.penalty
+    def __lt__(self, other):
+        return self.penalty < other.penalty
+    def __str__(self):
+        return '{} {}'.format(self.node, self.penalty)
 
 def playBoard():
     """
@@ -439,30 +449,19 @@ def playBoard():
 
         # educated guess solution
         if inputOption == 'a':
-            minIndex = 0
-            queue = [[moveNode(myboard), ['', '']]]
+            queue = [Node(moveNode(myboard))]
             while queue:
-                queuedNode = queue.pop(minIndex)[0]
-                print("Seen size " + str(len(moveNode.seen)))
-                for ns in queuedNode.nodeMoves():
-                    if not ns[0]:
-                        print('\n\n')
-                        queuedNode.board.printState()
-                        return
-                    else:
-                        queue.append(ns)
+                queuedNode = queue.pop(0)
+                nextMoves = queuedNode.node.nodeMoves()
+                if nextMoves is None:
+                    print('\n\n')
+                    queuedNode.node.board.printState()
+                    print("Seen size " + str(len(moveNode.seen)))
+                    return
 
-                if queue:
-                    i = 0
-                    minIndex = 0
-                    minPenalty  = queue[0][0].penalty
-                    for n in queue:
-                        if n[0].penalty<minPenalty:
-                            minPenalty = n[0].penalty
-                            minIndex = i
-                        i+=1
+                for ns in nextMoves:
+                    bisect.insort_left(queue, Node(ns))
 
-                # queue.sort(key=lambda x: x[0].penalty)
         print("No solution found")
         return
 
