@@ -24,7 +24,7 @@ class Board:
                       ['O', 'e', 'e', 'd', 'g', 'g', 'O'],
                       ['O', 'j', 'j', 'h', 'f', 'f', 'O'],
                       ['O', 'i', 'i', 'h', 'k', 'k', 'O'],
-                      ['O', '0', '0', '0', '0', '0', 'O'],
+                      ['O', 'l', '0', '0', '0', 'm', 'O'],
                       ['O', 'O', 'O', 'O', 'O', 'O', 'O']]
         self.resetCache()
         self.pieces = {}
@@ -59,8 +59,8 @@ class Board:
     def pieceHash(self, piece):
         if piece in self.pieces.keys():
             pieceCoordinates = self.pieces[piece][0]
-            return hash((pieceCoordinates[0]*9757157, pieceCoordinates[1]))
-        return 1234567
+            return hash((pieceCoordinates[0], pieceCoordinates[1]))
+        return 1234565517
 
     @property
     def hash(self):
@@ -71,18 +71,30 @@ class Board:
         coordinate by length of the board adding the second coordinate,
         to ensure there won't be a clash.
         """
-        # vertical
-        v = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['d','h']])
-        # # horizontal
-        h = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['e','g','j','f','i','k']])
-        # # unique
-        # u = functools.reduce(lambda a,b : a*b, [self.hashes[p] for p in ['l','m']])
+        # unique ones
+        a1 = self.pieceHash('a')
+        b1 = self.pieceHash('b')
+        c1 = self.pieceHash('c')
 
-        return hash((self.hashes['a'],
-                        self.hashes['b'],
-                        self.hashes['c'],
-                        v,h))
+        # two vertical
+        a2 = self.pieceHash('d')
+        a2 *= self.pieceHash('h')
 
+        # two vertical e,c,j,f,i,k
+        a3 = self.pieceHash('e')
+        a3 *= self.pieceHash('g')
+        a3 *= self.pieceHash('j')
+        a3 *= self.pieceHash('f')
+        a3 *= self.pieceHash('i')
+        a3 *= self.pieceHash('k')
+
+        # two horizontal
+        a4 = self.pieceHash('l')
+        a4 *= self.pieceHash('m')
+
+        # two by two
+        b = self.pieceHash('b')
+        return hash((a4,a1,b1,c1,a2,a3))
 
     @property
     def b_defective(self):
@@ -147,15 +159,6 @@ class Board:
         """
         return self.e(x, y) == '0'
 
-    # def maxCoordinates(self, piece, direction):
-    #     coordinates = self.pieces[piece]
-    #     verticals = set([x[1] for x in coordinates])
-
-    #     if direction == 'l':
-
-
-    #         for c in coordinates:
-
     def piecePossibleMoves(self, piece, coordn):
         """
         returns whether or not the is empty spaces in all directions
@@ -172,30 +175,27 @@ class Board:
         moves['l'] = all([self.empty(c[0] - 1, c[1])
             or self.e(c[0] - 1, c[1]) == piece for c in coordn])
 
-        if moves['l']:
-            moves['lt'] = all([self.empty(c[0] - 2, c[1])
-                or self.e(c[0] - 2, c[1]) == piece for c in coordn])
-
         moves['r'] = all([self.empty(c[0] + 1, c[1])
             or self.e(c[0] + 1, c[1]) == piece for c in coordn])
-
-        if moves['r']:
-            moves['rt'] = all([self.empty(c[0] + 2, c[1])
-                or self.e(c[0] + 2, c[1]) == piece for c in coordn])
 
         moves['u'] = all([self.empty(c[0], c[1] - 1)
             or self.e(c[0], c[1] - 1) == piece for c in coordn])
 
-        if moves['u']:
-            moves['ut'] =  all([self.empty(c[0], c[1] - 2)
-                or self.e(c[0], c[1] - 2) == piece for c in coordn])
-
         moves['d'] = all([self.empty(c[0], c[1] + 1)
-            or                self.e(c[0], c[1] + 1) == piece for c in coordn])
+            or self.e(c[0], c[1] + 1) == piece for c in coordn])
 
-        if moves['d']:
-            moves['dt']= all([self.empty(c[0], c[1] + 2)
-                or self.e(c[0], c[1] + 2) == piece for c in coordn])
+        # if moves['l']:
+        #     moves['lt'] = all([self.empty(c[0] - 2, c[1])
+        #         or self.e(c[0] - 2, c[1]) == piece for c in coordn])
+        # if moves['r']:
+        #     moves['rt'] = all([self.empty(c[0] + 2, c[1])
+        #         or self.e(c[0] + 2, c[1]) == piece for c in coordn])
+        # if moves['u']:
+        #     moves['ut'] =  all([self.empty(c[0], c[1] - 2)
+        #         or self.e(c[0], c[1] - 2) == piece for c in coordn])
+        # if moves['d']:
+        #     moves['dt']= all([self.empty(c[0], c[1] + 2)
+        #         or self.e(c[0], c[1] + 2) == piece for c in coordn])
 
         can_move = any([moves['l'], moves['r'], moves['u'], moves['d'],
                         moves['lt'], moves['rt'], moves['ut'], moves['dt']])
@@ -306,7 +306,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/10.0) + self.board.defective
+        return (self.deep/50.0) + self.board.defective
 
     def flattenMoves(self):
         """
@@ -382,8 +382,8 @@ def playBoard():
             \n\t(a) A* solution.\
             \n\t(s) Show board.")
         print("---------------------------")
-        inputOption = input("Option:")
-        # inputOption = 'a'
+        # inputOption = input("Option:")
+        inputOption = 'a'
         # manual solution
         if inputOption == 'm':
             myboard.printState()
@@ -443,12 +443,11 @@ def playBoard():
             queue = [[moveNode(myboard), ['', '']]]
             while queue:
                 queuedNode = queue.pop(minIndex)[0]
-
+                print("Seen size " + str(len(moveNode.seen)))
                 for ns in queuedNode.nodeMoves():
                     if not ns[0]:
                         print('\n\n')
                         queuedNode.board.printState()
-                        print("Seen size " + str(len(moveNode.seen)))
                         return
                     else:
                         queue.append(ns)
