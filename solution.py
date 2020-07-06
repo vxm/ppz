@@ -103,7 +103,7 @@ class Board:
         returns how far is b from final position
         """
         b_first_corner = self.pieces['b'][0]
-        objetive_position = [2, len(self.board) - 3]
+        objetive_position = [2, len(self.board) - 2]
         return math.sqrt((objetive_position[0] - b_first_corner[0])**2 + (objetive_position[1] - b_first_corner[1])**2)
 
     @property
@@ -307,7 +307,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/1.0) + self.board.defective
+        return (self.deep/2.0) + self.board.defective
 
     def flattenMoves(self):
         """
@@ -351,14 +351,18 @@ class moveNode:
                     parentIt = parentIt.parent
 
                 for step, m in enumerate(moveInstructions):
-                    print ("Step", (step + 1), " piece:", m[0], "goes ", moveNode.names[m[1]])
+                    print ("Step", step, ", piece:", m[0], "goes", moveNode.names[m[1]])
 
                 return None
 
             newBoard = copy.deepcopy(self.board)
             newBoard.resetCache()
             newBoard.move(piece, direction)
-            nodes.append( moveNode(newBoard, self, [piece, direction]) )
+            validMove = moveNode(newBoard, self, [piece, direction])
+            if self.parent and self.parent.moves and piece == self.parent.moves[0]:
+                validMove._deep -=1
+            nodes.append( validMove )
+
 
         return nodes
 

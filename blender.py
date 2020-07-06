@@ -1,3 +1,4 @@
+import bisect
 import copy
 import functools
 import math
@@ -27,7 +28,7 @@ def keyLocation(pieceName):
     bpy.ops.anim.keyframe_insert_by_name(type="Location")
 
 def keyAll():
-    for k in range(0,10):
+    for k in range(0,ord("m")):
         keyLocation(chr(k+ord("a")))
 
 
@@ -82,31 +83,43 @@ class Board:
     Therefore the first objective is to move Piece E above B
     """
     def __init__(self):
-        self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
-                      ['O', 'a', 'b', 'b', 'c', 'O'],
-                      ['O', 'a', 'b', 'b', 'c', 'O'],
-                      ['O', 'd', 'e', 'e', 'f', 'O'],
-                      ['O', 'd', 'g', 'h', 'f', 'O'],
-                      ['O', 'i', '0', '0', 'j', 'O'],
-                      ['O', 'O', 'O', 'O', 'O', 'O']]
+        self.board = [['O', 'O', 'O', 'O', 'O', 'O', 'O'],
+                      ['O', 'a', 'b', 'b', 'b', 'c', 'O'],
+                      ['O', 'a', 'a', 'd', 'c', 'c', 'O'],
+                      ['O', 'e', 'e', 'd', 'g', 'g', 'O'],
+                      ['O', 'j', 'j', 'h', 'f', 'f', 'O'],
+                      ['O', 'i', 'i', 'h', 'k', 'k', 'O'],
+                      ['O', 'l', '0', '0', '0', 'm', 'O'],
+                      ['O', 'O', 'O', 'O', 'O', 'O', 'O']]
+        self.resetCache()
         self.pieces = {}
+        self.hashes = {}
         self.computePieces()
         Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
                                 'ut':'dt','dt':'ut','lt':'rt','rt':'lt' }
 
+    def resetCache(self):
+        self._defective = 10000000
+
     def computePieces(self):
         """
-        computes the pieces and where they can be found
+        computes the pieces and where they can be found.
         """
+        # initialising the pieces dictionary with
+        # empty arrays
         for line in self.board:
             for p in line:
                 if p.islower():
                     self.pieces[p] = []
 
+        # adding coordinates to those pieces.
         for y, line in enumerate(self.board):
             for x, element in enumerate(line):
                 if element in self.pieces:
                     self.pieces[element].append([x, y])
+
+        for k in self.pieces.keys():
+            self.hashes[k] = self.pieceHash(k)
 
     def pieceHash(self, piece):
         if piece in self.pieces.keys():
@@ -124,23 +137,29 @@ class Board:
         to ensure there won't be a clash.
         """
         # unique ones
-        g = self.pieceHash('g')
-        h = self.pieceHash('h')
-        i = self.pieceHash('i')
-        j = self.pieceHash('j')
+        a1 = self.pieceHash('a')
+        b1 = self.pieceHash('b')
+        c1 = self.pieceHash('c')
 
         # two vertical
-        a = self.pieceHash('a')
-        c = self.pieceHash('c')
-        d = self.pieceHash('d')
-        f = self.pieceHash('f')
+        a2 = self.pieceHash('d')
+        a2 *= self.pieceHash('h')
+
+        # two vertical e,c,j,f,i,k
+        a3 = self.pieceHash('e')
+        a3 *= self.pieceHash('g')
+        a3 *= self.pieceHash('j')
+        a3 *= self.pieceHash('f')
+        a3 *= self.pieceHash('i')
+        a3 *= self.pieceHash('k')
 
         # two horizontal
-        e = self.pieceHash('e')
+        a4 = self.pieceHash('l')
+        a4 *= self.pieceHash('m')
 
         # two by two
         b = self.pieceHash('b')
-        return hash((g * h * i * j, a * c * d * f, e, b))
+        return hash((a4,a1,b1,c1,a2,a3))
 
     @property
     def b_defective(self):
@@ -148,7 +167,7 @@ class Board:
         returns how far is b from final position
         """
         b_first_corner = self.pieces['b'][0]
-        objetive_position = [2, len(self.board) - 3]
+        objetive_position = [2, len(self.board) - 2]
         return math.sqrt((objetive_position[0] - b_first_corner[0])**2 + (objetive_position[1] - b_first_corner[1])**2)
 
     @property
@@ -159,11 +178,16 @@ class Board:
             - how far is b from final position
             - how much e up relative to b
         """
+        if self._defective != 10000000:
+            return self._defective
+
         defective = self.b_defective
-        if 'e' in self.pieces.keys():
-            b_first_corner = self.pieces['b'][0]
-            e_first_corner = self.pieces['e'][0]
-            defective += 50 * max(b_first_corner[1] - e_first_corner[1], 0)
+        # for p in ['a','c','e','g','j','f','i','k']:
+        #     if p in self.pieces.keys():
+        #         b_first_corner = self.pieces['b'][0]
+        #         e_first_corner = self.pieces[p][0]
+        #         defective += max(b_first_corner[1] - e_first_corner[1], 0)
+        self._defective = defective
         return defective
 
     @property
@@ -200,14 +224,14 @@ class Board:
         """
         return self.e(x, y) == '0'
 
-    def candidateMoves(self, piece, coordn):
+    def piecePossibleMoves(self, piece, coordn):
         """
         returns whether or not the is empty spaces in all directions
         relative to coordn (coordinates)
         example of input coordn.
         [[2, 1], [3, 1], [2, 2], [3, 2]]
         example of returned value:
-        {'u': True, 'd': False, 'l': False, 'r': False}, True
+            {'u': True, 'd': False, 'l': False, 'r': False}, True
         for a piece that can only move up, can be moved (last ret)
         """
         moves = {'u': False, 'd': False, 'l': False, 'r': False,
@@ -216,27 +240,24 @@ class Board:
         moves['l'] = all([self.empty(c[0] - 1, c[1])
             or self.e(c[0] - 1, c[1]) == piece for c in coordn])
 
-        if moves['l']:
-            moves['lt'] = all([self.empty(c[0] - 2, c[1])
-                or self.e(c[0] - 2, c[1]) == piece for c in coordn])
-
         moves['r'] = all([self.empty(c[0] + 1, c[1])
             or self.e(c[0] + 1, c[1]) == piece for c in coordn])
-
-        if moves['r']:
-            moves['rt'] = all([self.empty(c[0] + 2, c[1])
-                or self.e(c[0] + 2, c[1]) == piece for c in coordn])
 
         moves['u'] = all([self.empty(c[0], c[1] - 1)
             or self.e(c[0], c[1] - 1) == piece for c in coordn])
 
-        if moves['u']:
-            moves['ut'] =  all([self.empty(c[0], c[1] - 2)
-                or self.e(c[0], c[1] - 2) == piece for c in coordn])
-
         moves['d'] = all([self.empty(c[0], c[1] + 1)
             or self.e(c[0], c[1] + 1) == piece for c in coordn])
 
+        if moves['l']:
+            moves['lt'] = all([self.empty(c[0] - 2, c[1])
+                or self.e(c[0] - 2, c[1]) == piece for c in coordn])
+        if moves['r']:
+            moves['rt'] = all([self.empty(c[0] + 2, c[1])
+                or self.e(c[0] + 2, c[1]) == piece for c in coordn])
+        if moves['u']:
+            moves['ut'] =  all([self.empty(c[0], c[1] - 2)
+                or self.e(c[0], c[1] - 2) == piece for c in coordn])
         if moves['d']:
             moves['dt']= all([self.empty(c[0], c[1] + 2)
                 or self.e(c[0], c[1] + 2) == piece for c in coordn])
@@ -256,7 +277,7 @@ class Board:
         """
         moves = {}
         for p, c in self.pieces.items():
-            allMoves, canMove = self.candidateMoves(p, c)
+            allMoves, canMove = self.piecePossibleMoves(p, c)
             if canMove:
                 moves[p] = [k for k, v in allMoves.items() if v]
         return moves
@@ -305,6 +326,8 @@ class Board:
         for c in self.pieces[pieceName]:
             self.setE(c[0], c[1], pieceName)
 
+        self.hashes[pieceName] = self.pieceHash(pieceName)
+
     def simulateMove(self, pieceName, direction):
         """
         emulates the move requested to identify
@@ -348,7 +371,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/200.0) + self.board.defective
+        return (self.deep/2.0) + self.board.defective
 
     def flattenMoves(self):
         """
@@ -366,13 +389,17 @@ class moveNode:
         finally returns the movements that could happen at
         this moment for the current board.
         """
+        nodes = []
+        # print("new child")
         for i, (_, (piece, direction)) in enumerate(self.playableMoves):
             # we simulate the move in place
-            hash, done = self.board.simulateMove(piece, direction)
+            hashr, done = self.board.simulateMove(piece, direction)
             # if the result of the similation was
             # previously visited we skip this step
-            if hash in moveNode.seen:
+            if hashr in moveNode.seen:
                 continue
+
+            # print("\tnovel move: "+ piece +" "+direction)
             if done:
                 # a bit of a celebration here!.
                 print('\n\n-----------*****************************-----------')
@@ -418,14 +445,28 @@ class moveNode:
                         right(m[0])
                         right(m[0])
 
-                return [[None, [piece,direction]]]
+                return None
 
             newBoard = copy.deepcopy(self.board)
+            newBoard.resetCache()
             newBoard.move(piece, direction)
-            self.playableMoves[i][0] = moveNode(newBoard, self, [piece,direction])
+            validMove = moveNode(newBoard, self, [piece, direction])
+            if self.parent and self.parent.moves and piece == self.parent.moves[0]:
+                validMove._deep -=1
+            nodes.append( validMove )
 
-        cleanedSequence = [s for s in self.playableMoves if s[0] is not None]
-        return cleanedSequence
+
+        return nodes
+
+@functools.total_ordering
+class Node:
+    def __init__(self, node):
+        self.node = node
+        self.penalty = node.penalty
+    def __lt__(self, other):
+        return self.penalty < other.penalty
+    def __str__(self):
+        return '{} {}'.format(self.node, self.penalty)
 
 def playBoard():
     """
@@ -433,18 +474,17 @@ def playBoard():
     """
     myboard = Board()
 
-    queue = [[moveNode(myboard), ['', '']]]
-    found = False
-    while len(queue) and not found:
-        queuedNode = queue.pop(0)[0]
+    queue = [Node(moveNode(myboard))]
+    while queue:
+        queuedNode = queue.pop(0)
+        nextMoves = queuedNode.node.nodeMoves()
+        if nextMoves is None:
+            print('\n\n')
+            queuedNode.node.board.printState()
+            print("Seen size " + str(len(moveNode.seen)))
+            return
 
-        for ns in queuedNode.nodeMoves():
-            if not ns[0]:
-                print('\n\n')
-                queuedNode.board.printState()
-                found = True
-                return
-            queue.append(ns)
-        queue.sort(key=lambda x: x[0].penalty)
+        for ns in nextMoves:
+            bisect.insort_left(queue, Node(ns))
 
 playBoard()
