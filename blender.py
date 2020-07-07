@@ -28,7 +28,7 @@ def keyLocation(pieceName):
     bpy.ops.anim.keyframe_insert_by_name(type="Location")
 
 def keyAll():
-    for k in range(0,ord("m")):
+    for k in range(0,13):
         keyLocation(chr(k+ord("a")))
 
 
@@ -415,33 +415,31 @@ class moveNode:
                     parentIt = parentIt.parent
 
                 for step, m in enumerate(moveInstructions):
-                    direction = moveNode.names[m[1]]
-
-                    if direction == "down":
+                    if m[1] == "d":
                         down(m[0])
 
-                    if direction == "up":
+                    if m[1] == "u":
                         up(m[0])
 
-                    if direction == "left":
+                    if m[1] == "l":
                         left(m[0])
 
-                    if direction == "right":
+                    if m[1] == "r":
                         right(m[0])
 
-                    if direction == "down twice":
+                    if m[1] == "dt":
                         down(m[0])
                         down(m[0])
 
-                    if direction == "up twice":
+                    if m[1] == "ut":
                         up(m[0])
                         up(m[0])
 
-                    if direction == "left twice":
+                    if m[1] == "lt":
                         left(m[0])
                         left(m[0])
 
-                    if direction == "right twice":
+                    if m[1] == "rt":
                         right(m[0])
                         right(m[0])
 
