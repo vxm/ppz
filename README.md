@@ -9,6 +9,9 @@ https://github.com/vxm/ppz/wiki
 
  I prepared this solution script inside Blender 3D software (which has a Python API) so it would give animation keys to each piece each step. The render solution can be found here;
  
+ A more advanced solution can be found here.
+ https://youtu.be/39Hjt4unlSs?t=42
+ 
  https://www.youtube.com/watch?v=cS4G4g7pAXw
 
 
