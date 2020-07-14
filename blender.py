@@ -1,3 +1,4 @@
+import bisect
 import copy
 import functools
 import math
@@ -89,24 +90,35 @@ class Board:
                       ['O', 'd', 'g', 'h', 'f', 'O'],
                       ['O', 'i', '0', '0', 'j', 'O'],
                       ['O', 'O', 'O', 'O', 'O', 'O']]
+        self.resetCache()
         self.pieces = {}
+        self.hashes = {}
         self.computePieces()
         Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
                                 'ut':'dt','dt':'ut','lt':'rt','rt':'lt' }
 
+    def resetCache(self):
+        self._defective = 10000000
+
     def computePieces(self):
         """
-        computes the pieces and where they can be found
+        computes the pieces and where they can be found.
         """
+        # initialising the pieces dictionary with
+        # empty arrays
         for line in self.board:
             for p in line:
                 if p.islower():
                     self.pieces[p] = []
 
+        # adding coordinates to those pieces.
         for y, line in enumerate(self.board):
             for x, element in enumerate(line):
                 if element in self.pieces:
                     self.pieces[element].append([x, y])
+
+        for k in self.pieces.keys():
+            self.hashes[k] = self.pieceHash(k)
 
     def pieceHash(self, piece):
         if piece in self.pieces.keys():
@@ -159,11 +171,17 @@ class Board:
             - how far is b from final position
             - how much e up relative to b
         """
+        if self._defective != 10000000:
+            return self._defective
+
         defective = self.b_defective
-        if 'e' in self.pieces.keys():
-            b_first_corner = self.pieces['b'][0]
-            e_first_corner = self.pieces['e'][0]
-            defective += 50 * max(b_first_corner[1] - e_first_corner[1], 0)
+        for p in ['e']:
+            if p in self.pieces.keys():
+                b_first_corner = self.pieces['b'][0]
+                e_first_corner = self.pieces[p][0]
+                defective += max(abs(b_first_corner[1] - e_first_corner[1]), 0) / 2.0
+
+        self._defective = defective
         return defective
 
     @property
@@ -200,14 +218,14 @@ class Board:
         """
         return self.e(x, y) == '0'
 
-    def candidateMoves(self, piece, coordn):
+    def piecePossibleMoves(self, piece, coordn):
         """
         returns whether or not the is empty spaces in all directions
         relative to coordn (coordinates)
         example of input coordn.
         [[2, 1], [3, 1], [2, 2], [3, 2]]
         example of returned value:
-        {'u': True, 'd': False, 'l': False, 'r': False}, True
+            {'u': True, 'd': False, 'l': False, 'r': False}, True
         for a piece that can only move up, can be moved (last ret)
         """
         moves = {'u': False, 'd': False, 'l': False, 'r': False,
@@ -256,7 +274,7 @@ class Board:
         """
         moves = {}
         for p, c in self.pieces.items():
-            allMoves, canMove = self.candidateMoves(p, c)
+            allMoves, canMove = self.piecePossibleMoves(p, c)
             if canMove:
                 moves[p] = [k for k, v in allMoves.items() if v]
         return moves
@@ -305,6 +323,8 @@ class Board:
         for c in self.pieces[pieceName]:
             self.setE(c[0], c[1], pieceName)
 
+        self.hashes[pieceName] = self.pieceHash(pieceName)
+
     def simulateMove(self, pieceName, direction):
         """
         emulates the move requested to identify
@@ -348,7 +368,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/200.0) + self.board.defective
+        return (self.deep/13.1) + self.board.defective
 
     def flattenMoves(self):
         """
@@ -366,13 +386,17 @@ class moveNode:
         finally returns the movements that could happen at
         this moment for the current board.
         """
+        nodes = []
+        # print("new child")
         for i, (_, (piece, direction)) in enumerate(self.playableMoves):
             # we simulate the move in place
-            hash, done = self.board.simulateMove(piece, direction)
+            hashr, done = self.board.simulateMove(piece, direction)
             # if the result of the similation was
             # previously visited we skip this step
-            if hash in moveNode.seen:
+            if hashr in moveNode.seen:
                 continue
+
+            # print("\tnovel move: "+ piece +" "+direction)
             if done:
                 # a bit of a celebration here!.
                 print('\n\n-----------*****************************-----------')
@@ -427,7 +451,18 @@ class moveNode:
         cleanedSequence = [s for s in self.playableMoves if s[0] is not None]
         return cleanedSequence
 
-def playBoard():
+@functools.total_ordering
+class Node:
+    def __init__(self, node):
+        self.node = node
+        self.penalty = node.penalty
+    def __lt__(self, other):
+        return self.penalty < other.penalty
+    def __str__(self):
+        return '{} {}'.format(self.node, self.penalty)
+
+
+def solveAndAnimateBoard():
     """
     This function allows you to play with a board and visualize the results
     """
@@ -447,4 +482,4 @@ def playBoard():
             queue.append(ns)
         queue.sort(key=lambda x: x[0].penalty)
 
-playBoard()
+solveAndAnimateBoard()

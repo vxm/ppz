@@ -111,11 +111,12 @@ class Board:
             return self._defective
 
         defective = self.b_defective
-        # for p in ['a','c','e','g','j','f','i','k']:
-        #     if p in self.pieces.keys():
-        #         b_first_corner = self.pieces['b'][0]
-        #         e_first_corner = self.pieces[p][0]
-        #         defective += max(b_first_corner[1] - e_first_corner[1], 0)
+        for p in ['e']:
+            if p in self.pieces.keys():
+                b_first_corner = self.pieces['b'][0]
+                e_first_corner = self.pieces[p][0]
+                defective += max(abs(b_first_corner[1] - e_first_corner[1]), 0) / 2.0
+
         self._defective = defective
         return defective
 
@@ -303,7 +304,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/21.0) + self.board.defective
+        return (self.deep/13.1) + self.board.defective
 
     def flattenMoves(self):
         """
@@ -389,8 +390,8 @@ def playBoard():
             \n\t(a) A* solution.\
             \n\t(s) Show board.")
         print("---------------------------")
-        # inputOption = input("Option:")
-        inputOption = 'a'
+        inputOption = input("Option:")
+
         # manual solution
         if inputOption == 'm':
             myboard.printState()
@@ -459,8 +460,8 @@ def playBoard():
                 for ns in nextMoves:
                     bisect.insort_left(queue, Node(ns))
 
-        print("No solution found")
-        return
+            print("No solution found")
+            return
 
         if inputOption == 's':
             myboard.printState()
