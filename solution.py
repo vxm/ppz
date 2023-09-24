@@ -44,7 +44,7 @@ class Board:
         # empty arrays
         for line in self.board:
             for p in line:
-                if p.islower():
+                if p.islower() and p not in self.pieces:
                     self.pieces[p] = []
 
         # adding coordinates to those pieces.
