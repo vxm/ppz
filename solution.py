@@ -30,6 +30,7 @@ class Board:
         self.pieces = {}
         self.hashes = {}
         self.computePieces()
+        self.objetive_position = [2, len(self.board) - 3]
         Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
                                 'ut':'dt','dt':'ut','lt':'rt','rt':'lt' }
 
@@ -96,8 +97,7 @@ class Board:
         returns how far is b from final position
         """
         b_first_corner = self.pieces['b'][0]
-        objetive_position = [2, len(self.board) - 3]
-        return math.sqrt((objetive_position[0] - b_first_corner[0])**2 + (objetive_position[1] - b_first_corner[1])**2)
+        return math.sqrt((self.objetive_position[0] - b_first_corner[0])**2 + (self.objetive_position[1] - b_first_corner[1])**2)
 
     @property
     def defective(self):
@@ -111,11 +111,10 @@ class Board:
             return self._defective
 
         defective = self.b_defective
-        for p in ['e']:
-            if p in self.pieces.keys():
-                b_first_corner = self.pieces['b'][0]
-                e_first_corner = self.pieces[p][0]
-                defective += max(abs(b_first_corner[1] - e_first_corner[1]), 0) / 2.0
+    
+        b_first_corner = self.pieces['b'][0]
+        e_first_corner = self.pieces['e'][0]
+        defective += max(abs(b_first_corner[1] - e_first_corner[1]), 0) / 2.0
 
         self._defective = defective
         return defective
