@@ -20,17 +20,33 @@ class Board:
     """
     def __init__(self):
         self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
-                      ['O', 'a', 'b', 'b', 'c', 'O'],
-                      ['O', 'a', 'b', 'b', 'c', 'O'],
-                      ['O', 'd', 'e', 'e', 'f', 'O'],
-                      ['O', 'd', 'g', 'h', 'f', 'O'],
-                      ['O', 'i', '0', '0', 'j', 'O'],
+                      ['O', '0', '0', '0', '0', 'O'],
+                      ['O', '0', '0', '0', '0', 'O'],
+                      ['O', '0', '0', '0', '0', 'O'],
+                      ['O', '0', 'b', 'b', '0', 'O'],
+                      ['O', '0', 'b', 'b', '0', 'O'],
+                      ['O', '0', '0', '0', '0', 'O'],
+                      ['O', '0', '0', '0', '0', 'O'],                      
+                      ['O', '0', '0', '0', '0', 'O'],
+                      ['O', '0', 'e', 'e', '0', 'O'],
+                      ['O', '0', '0', '0', '0', 'O'],
+                      ['O', '0', '0', '0', '0', 'O'],
+                      ['O', '0', '0', '0', '0', 'O'],
                       ['O', 'O', 'O', 'O', 'O', 'O']]
+        self.objetive_position = [2, len(self.board) - 2]
+        # self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
+        #               ['O', 'a', 'b', 'b', 'c', 'O'],
+        #               ['O', 'a', 'b', 'b', 'c', 'O'],
+        #               ['O', 'd', 'e', 'e', 'f', 'O'],
+        #               ['O', 'd', 'g', 'h', 'f', 'O'],
+        #               ['O', 'i', '0', '0', 'j', 'O'],
+        #               ['O', 'O', 'O', 'O', 'O', 'O']]
+        # self.objetive_position = [2, len(self.board) - 3]
         self.resetCache()
         self.pieces = {}
         self.hashes = {}
         self.computePieces()
-        self.objetive_position = [2, len(self.board) - 3]
+        
         Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
                                 'ut':'dt','dt':'ut','lt':'rt','rt':'lt' }
 
@@ -113,8 +129,9 @@ class Board:
         defective = self.b_defective
     
         b_first_corner = self.pieces['b'][0]
-        e_first_corner = self.pieces['e'][0]
-        defective += max(abs(b_first_corner[1] - e_first_corner[1]), 0) / 2.0
+        if 'e' in self.pieces:
+            e_first_corner = self.pieces['e'][0]
+            defective += max(abs(b_first_corner[1] - e_first_corner[1]), 0) / 2.0
 
         self._defective = defective
         return defective
@@ -138,6 +155,12 @@ class Board:
         """
         Returns the element at the given coordinates.
         """
+        if x < 0 or y < 0:
+            return 'O'
+    
+        if x >= len(self.board[0]) or y >= len(self.board):
+            return 'O'
+        
         return self.board[y][x]
 
     def setE(self, x, y, v):
@@ -152,54 +175,60 @@ class Board:
         an empty space.
         """
         return self.e(x, y) == '0'
+    
 
-    def piecePossibleMoves(self, piece, coordn):
+    def piecePossibleMoves(self, piece, coordinates):
         """
         returns whether or not the is empty spaces in all directions
-        relative to coordn (coordinates)
-        example of input coordn.
+        relative to coordinates (coordinates)
+        example within standard board, of input coordinates.
         [[2, 1], [3, 1], [2, 2], [3, 2]]
         example of returned value:
             {'u': True, 'd': False, 'l': False, 'r': False}, True
         for a piece that can only move up, can be moved (last ret)
         """
-        moves = {'u': False, 'd': False, 'l': False, 'r': False,
-                'ut': False, 'dt': False, 'lt': False, 'rt': False}
+        moves = {}
 
-        moves['l'] = all([self.empty(c[0] - 1, c[1])
-            or self.e(c[0] - 1, c[1]) == piece for c in coordn])
+        l = 1
+        clear = True
+        while clear:
+            key = 'l' + str(l)
+            candidates = [self.empty(c[0] - l, c[1]) or (self.e(c[0] - l, c[1]) == piece) for c in coordinates]
+            moves[key] = all(candidates)
+            l+=1
+            clear = moves[key]
 
-        if moves['l']:
-            moves['lt'] = all([self.empty(c[0] - 2, c[1])
-                or self.e(c[0] - 2, c[1]) == piece for c in coordn])
+        r = 1
+        clear = True
+        while clear:
+            key = 'r' + str(r)
+            moves[key] = all([self.empty(c[0] + r, c[1])
+                or self.e(c[0] + r, c[1]) == piece for c in coordinates])
+            r+=1
+            clear = moves[key]
 
-        moves['r'] = all([self.empty(c[0] + 1, c[1])
-            or self.e(c[0] + 1, c[1]) == piece for c in coordn])
+        u = 1
+        clear = True
+        while clear:
+            key = 'u' + str(u)
+            moves[key] = all([self.empty(c[0], c[1] - u)
+                or self.e(c[0], c[1] - u) == piece for c in coordinates])
+            u+=1
+            clear = moves[key]
 
-        if moves['r']:
-            moves['rt'] = all([self.empty(c[0] + 2, c[1])
-                or self.e(c[0] + 2, c[1]) == piece for c in coordn])
+        d = 1
+        clear = True
+        while clear:
+            key = 'd' + str(d)
+            moves[key] = all([self.empty(c[0], c[1] + d)
+                or self.e(c[0], c[1] + d) == piece for c in coordinates])
+            d+=1
+            clear = moves[key]
 
-        moves['u'] = all([self.empty(c[0], c[1] - 1)
-            or self.e(c[0], c[1] - 1) == piece for c in coordn])
-
-        if moves['u']:
-            moves['ut'] =  all([self.empty(c[0], c[1] - 2)
-                or self.e(c[0], c[1] - 2) == piece for c in coordn])
-
-        moves['d'] = all([self.empty(c[0], c[1] + 1)
-            or self.e(c[0], c[1] + 1) == piece for c in coordn])
-
-        if moves['d']:
-            moves['dt']= all([self.empty(c[0], c[1] + 2)
-                or self.e(c[0], c[1] + 2) == piece for c in coordn])
-
-        can_move = any([moves['l'], moves['r'], moves['u'], moves['d'],
-                        moves['lt'], moves['rt'], moves['ut'], moves['dt']])
-
+        can_move = any([m for m in moves.items()])
         return moves, can_move
 
-    def posibleMoves(self):
+    def possibleMoves(self):
         """
         returns only the pieces that can move and their movable direction.
         a possible return value would be like this:
@@ -310,7 +339,7 @@ class moveNode:
         Obtains the possible moves on the board
         and stripes them on unit possible moves.
         """
-        for pieceName, directions in self.board.posibleMoves().items():
+        for pieceName, directions in self.board.possibleMoves().items():
             for direction in directions:
                 self.playableMoves.append([None, [pieceName, direction]])
 
@@ -394,7 +423,7 @@ def playBoard():
         # manual solution
         if inputOption == 'm':
             myboard.printState()
-            pos_moves = myboard.posibleMoves()
+            pos_moves = myboard.possibleMoves()
             print(pos_moves)
             pieceName = input("Select piece: ")
             if pieceName in pos_moves:
@@ -416,7 +445,7 @@ def playBoard():
         if inputOption == 'r':
             st = 0
             for _ in range(0, g_random_moves + 1):
-                moves_dict = myboard.posibleMoves()
+                moves_dict = myboard.possibleMoves()
                 pos_moves_listed = list(moves_dict)
                 option = random.choice(pos_moves_listed)
                 print(option)
@@ -431,7 +460,7 @@ def playBoard():
         if inputOption == 'b':
             st = 0
             while myboard.defective != 0:
-                moves_dict = myboard.posibleMoves()
+                moves_dict = myboard.possibleMoves()
                 pos_moves_listed = list(moves_dict)
                 option = random.choice(pos_moves_listed)
                 directions = moves_dict[option]
