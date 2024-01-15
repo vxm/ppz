@@ -6,7 +6,7 @@ import random
 
 # global variable to define the amount of random
 # movements when the option is chosen.
-g_random_moves = 10000
+g_random_moves = 1000
 class Board:
     """
     A class representing a Board filled with blocks.
@@ -20,35 +20,19 @@ class Board:
     """
     def __init__(self):
         self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
-                      ['O', '0', '0', '0', '0', 'O'],
-                      ['O', '0', '0', '0', '0', 'O'],
-                      ['O', '0', '0', '0', '0', 'O'],
-                      ['O', '0', 'b', 'b', '0', 'O'],
-                      ['O', '0', 'b', 'b', '0', 'O'],
-                      ['O', '0', '0', '0', '0', 'O'],
-                      ['O', '0', '0', '0', '0', 'O'],                      
-                      ['O', '0', '0', '0', '0', 'O'],
-                      ['O', '0', 'e', 'e', '0', 'O'],
-                      ['O', '0', '0', '0', '0', 'O'],
-                      ['O', '0', '0', '0', '0', 'O'],
-                      ['O', '0', '0', '0', '0', 'O'],
+                      ['O', 'a', 'b', 'b', 'c', 'O'],
+                      ['O', 'a', 'b', 'b', 'c', 'O'],
+                      ['O', 'd', 'e', 'e', 'f', 'O'],
+                      ['O', 'd', 'g', 'h', 'f', 'O'],
+                      ['O', 'i', '0', '0', 'j', 'O'],
                       ['O', 'O', 'O', 'O', 'O', 'O']]
-        self.objetive_position = [2, len(self.board) - 2]
-        # self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
-        #               ['O', 'a', 'b', 'b', 'c', 'O'],
-        #               ['O', 'a', 'b', 'b', 'c', 'O'],
-        #               ['O', 'd', 'e', 'e', 'f', 'O'],
-        #               ['O', 'd', 'g', 'h', 'f', 'O'],
-        #               ['O', 'i', '0', '0', 'j', 'O'],
-        #               ['O', 'O', 'O', 'O', 'O', 'O']]
-        # self.objetive_position = [2, len(self.board) - 3]
+        self.objetive_position = [2, len(self.board) - 3]
         self.resetCache()
         self.pieces = {}
         self.hashes = {}
         self.computePieces()
         
-        Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
-                                'ut':'dt','dt':'ut','lt':'rt','rt':'lt' }
+        Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l'}
 
     def resetCache(self):
         self._defective = 10000000
@@ -225,14 +209,14 @@ class Board:
             d+=1
             clear = moves[key]
 
-        can_move = any([m for m in moves.items()])
+        can_move = any([m[1] for m in moves.items()])
         return moves, can_move
 
     def possibleMoves(self):
         """
         returns only the pieces that can move and their movable direction.
         a possible return value would be like this:
-        {'g': ['d'], 'h': ['d'], 'i': ['r'], 'j': ['l']}
+            {'g': ['d'], 'h': ['d'], 'i': ['r'], 'j': ['l']}
         for piece 'g' can move down, 'h' can move down, 'i' can move right
         and 'j' can move left.
         """
@@ -243,7 +227,7 @@ class Board:
                 moves[p] = [k for k, v in allMoves.items() if v]
         return moves
 
-    def move(self, pieceName, direction):
+    def move(self, pieceName, moves):
         """
         Updates two elements on each call.
         - the board itself.
@@ -252,37 +236,23 @@ class Board:
         for c in self.pieces[pieceName]:
             self.setE(c[0], c[1], '0')
 
+        (direction, steps) = moves
+
         if direction == 'u':
             for coor in self.pieces[pieceName]:
-                coor[1] -= 1
+                coor[1] -= int(steps)
 
         if direction == 'd':
             for coor in self.pieces[pieceName]:
-                coor[1] += 1
+                coor[1] += int(steps)
 
         if direction == 'l':
             for coor in self.pieces[pieceName]:
-                coor[0] -= 1
+                coor[0] -= int(steps)
 
         if direction == 'r':
             for coor in self.pieces[pieceName]:
-                coor[0] += 1
-
-        if direction == 'ut':
-            for coor in self.pieces[pieceName]:
-                coor[1] -= 2
-
-        if direction == 'dt':
-            for coor in self.pieces[pieceName]:
-                coor[1] += 2
-
-        if direction == 'lt':
-            for coor in self.pieces[pieceName]:
-                coor[0] -= 2
-
-        if direction == 'rt':
-            for coor in self.pieces[pieceName]:
-                coor[0] += 2
+                coor[0] += int(steps)
 
         for c in self.pieces[pieceName]:
             self.setE(c[0], c[1], pieceName)
@@ -300,7 +270,9 @@ class Board:
         h = self.hash
         d = self.done
         # undo
-        self.move(pieceName, Board.oppositeDirection[direction])
+
+        direction = Board.oppositeDirection[direction[0]] + direction[1]
+        self.move(pieceName, direction)
         return h, d
 
 class moveNode:
@@ -351,7 +323,6 @@ class moveNode:
         this moment for the current board.
         """
         nodes = []
-        # print("new child")
         for i, (_, (piece, direction)) in enumerate(self.playableMoves):
             # we simulate the move in place
             hashr, done = self.board.simulateMove(piece, direction)
@@ -383,7 +354,8 @@ class moveNode:
             newBoard = copy.deepcopy(self.board)
             newBoard.resetCache()
             newBoard.move(piece, direction)
-            nodes.append( moveNode(newBoard, self, [piece, direction]) )
+            newMove = moveNode(newBoard, self, [piece, direction])
+            nodes.append(newMove)
 
         return nodes
 
