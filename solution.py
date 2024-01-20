@@ -3,11 +3,12 @@ import copy
 import functools
 import math
 import random
+import time
 
 # global variable to define the amount of random
 # movements when the option is chosen.
 g_random_moves = 1000
-PENALTY_DIVISION = 10000
+PENALTY_DIVISION = 100000
 
 class Board:
     """
@@ -478,4 +479,17 @@ def playBoard():
         if inputOption == 's':
             myboard.printState()
 
+
+
+start_time = time.time()
+
 playBoard()
+
+end_time = time.time()
+elapsed_seconds = end_time - start_time
+
+hours = elapsed_seconds // 3600
+minutes = (elapsed_seconds % 3600) // 60
+seconds = elapsed_seconds % 60
+
+print(f"Execution time: {int(hours)} hours, {int(minutes)} minutes, {seconds:.2f} seconds")
