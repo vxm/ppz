@@ -1,0 +1,267 @@
+
+
+        ------------- START -------------
+['O', 'O', 'O', 'O', 'O', 'O', 'O']
+['O', 'a', 'b', 'b', 'b', 'c', 'O']
+['O', 'a', 'a', 'd', 'c', 'c', 'O']
+['O', 'e', 'e', 'd', 'g', 'g', 'O']
+['O', 'j', 'j', 'h', 'f', 'f', 'O']
+['O', 'i', 'i', 'h', 'k', 'k', 'O']
+['O', 'l', '0', '0', '0', 'm', 'O']
+['O', 'O', 'O', 'O', 'O', 'O', 'O']
+defectiveness: 5.0
+---------------------------
+Choose your option:
+---------------------------
+
+        (q/e) Quit            
+        (m) Manual moves            
+        (r) Shuffle board            
+        (b) Random brute force solution            
+        (d) Dijkstra solution            
+        (a) A* solution.            
+        (s) Show board.
+---------------------------
+Option:a
+
+
+-----------*****************************-----------
+-----------* This solves the problem! **-----------
+-----------*****************************-----------
+
+
+Step 1, piece:, m, moves left, 3 steps
+Step 2, piece:, k, moves down, 1 steps
+Step 3, piece:, f, moves down, 1 steps
+Step 4, piece:, h, moves down, 1 steps
+Step 5, piece:, j, moves right, 3 steps
+Step 6, piece:, i, moves up, 1 steps
+Step 7, piece:, l, moves up, 1 steps
+Step 8, piece:, h, moves up, 1 steps
+Step 9, piece:, m, moves up, 1 steps
+Step 10, piece:, k, moves left, 3 steps
+Step 11, piece:, f, moves down, 1 steps
+Step 12, piece:, h, moves down, 1 steps
+Step 13, piece:, j, moves down, 1 steps
+Step 14, piece:, i, moves right, 3 steps
+Step 15, piece:, e, moves down, 1 steps
+Step 16, piece:, e, moves right, 1 steps
+Step 17, piece:, l, moves up, 2 steps
+Step 18, piece:, m, moves left, 1 steps
+Step 19, piece:, l, moves right, 1 steps
+Step 20, piece:, m, moves up, 2 steps
+Step 21, piece:, e, moves left, 1 steps
+Step 22, piece:, e, moves down, 1 steps
+Step 23, piece:, l, moves down, 1 steps
+Step 24, piece:, d, moves down, 1 steps
+Step 25, piece:, l, moves left, 1 steps
+Step 26, piece:, d, moves left, 1 steps
+Step 27, piece:, h, moves up, 3 steps
+Step 28, piece:, k, moves right, 1 steps
+Step 29, piece:, e, moves right, 1 steps
+Step 30, piece:, l, moves down, 2 steps
+Step 31, piece:, m, moves down, 2 steps
+Step 32, piece:, d, moves left, 1 steps
+Step 33, piece:, e, moves up, 1 steps
+Step 34, piece:, m, moves right, 2 steps
+Step 35, piece:, l, moves up, 1 steps
+Step 36, piece:, l, moves right, 1 steps
+Step 37, piece:, d, moves down, 2 steps
+Step 38, piece:, e, moves left, 1 steps
+Step 39, piece:, e, moves up, 1 steps
+Step 40, piece:, d, moves up, 1 steps
+Step 41, piece:, k, moves left, 1 steps
+Step 42, piece:, l, moves up, 1 steps
+Step 43, piece:, m, moves left, 1 steps
+Step 44, piece:, h, moves down, 3 steps
+Step 45, piece:, l, moves right, 1 steps
+Step 46, piece:, l, moves up, 2 steps
+Step 47, piece:, i, moves left, 2 steps
+Step 48, piece:, g, moves down, 1 steps
+Step 49, piece:, c, moves down, 1 steps
+Step 50, piece:, l, moves right, 1 steps
+Step 51, piece:, b, moves right, 1 steps
+Step 52, piece:, a, moves right, 1 steps
+Step 53, piece:, e, moves right, 1 steps
+Step 54, piece:, d, moves up, 3 steps
+Step 55, piece:, m, moves left, 1 steps
+Step 56, piece:, m, moves up, 2 steps
+Step 57, piece:, i, moves left, 1 steps
+Step 58, piece:, i, moves down, 1 steps
+Step 59, piece:, g, moves left, 2 steps
+Step 60, piece:, c, moves down, 1 steps
+Step 61, piece:, e, moves right, 1 steps
+Step 62, piece:, m, moves right, 1 steps
+Step 63, piece:, d, moves down, 2 steps
+Step 64, piece:, a, moves left, 1 steps
+Step 65, piece:, b, moves left, 1 steps
+Step 66, piece:, l, moves right, 1 steps
+Step 67, piece:, l, moves up, 1 steps
+Step 68, piece:, e, moves up, 1 steps
+Step 69, piece:, c, moves up, 1 steps
+Step 70, piece:, g, moves right, 2 steps
+Step 71, piece:, h, moves up, 2 steps
+Step 72, piece:, k, moves right, 1 steps
+Step 73, piece:, i, moves right, 1 steps
+Step 74, piece:, d, moves down, 2 steps
+Step 75, piece:, m, moves down, 1 steps
+Step 76, piece:, a, moves down, 1 steps
+Step 77, piece:, b, moves left, 1 steps
+Step 78, piece:, l, moves left, 1 steps
+Step 79, piece:, e, moves left, 1 steps
+Step 80, piece:, c, moves up, 1 steps
+Step 81, piece:, g, moves up, 1 steps
+Step 82, piece:, j, moves up, 1 steps
+Step 83, piece:, i, moves right, 2 steps
+Step 84, piece:, m, moves down, 1 steps
+Step 85, piece:, h, moves down, 1 steps
+Step 86, piece:, a, moves down, 1 steps
+Step 87, piece:, g, moves left, 2 steps
+Step 88, piece:, c, moves down, 1 steps
+Step 89, piece:, l, moves down, 1 steps
+Step 90, piece:, e, moves left, 1 steps
+Step 91, piece:, b, moves right, 2 steps
+Step 92, piece:, e, moves up, 1 steps
+Step 93, piece:, g, moves up, 1 steps
+Step 94, piece:, g, moves left, 1 steps
+Step 95, piece:, l, moves left, 1 steps
+Step 96, piece:, l, moves down, 1 steps
+Step 97, piece:, l, moves left, 1 steps
+Step 98, piece:, h, moves up, 2 steps
+Step 99, piece:, m, moves right, 1 steps
+Step 100, piece:, m, moves up, 1 steps
+Step 101, piece:, i, moves left, 2 steps
+Step 102, piece:, j, moves down, 1 steps
+Step 103, piece:, c, moves down, 1 steps
+Step 104, piece:, h, moves right, 1 steps
+Step 105, piece:, l, moves right, 1 steps
+Step 106, piece:, g, moves right, 1 steps
+Step 107, piece:, a, moves up, 1 steps
+Step 108, piece:, m, moves left, 2 steps
+Step 109, piece:, i, moves up, 1 steps
+Step 110, piece:, j, moves left, 2 steps
+Step 111, piece:, c, moves down, 1 steps
+Step 112, piece:, h, moves right, 1 steps
+Step 113, piece:, l, moves right, 1 steps
+Step 114, piece:, l, moves up, 1 steps
+Step 115, piece:, i, moves right, 1 steps
+Step 116, piece:, i, moves up, 1 steps
+Step 117, piece:, m, moves right, 3 steps
+Step 118, piece:, j, moves up, 1 steps
+Step 119, piece:, k, moves up, 1 steps
+Step 120, piece:, f, moves left, 2 steps
+Step 121, piece:, c, moves down, 1 steps
+Step 122, piece:, m, moves down, 1 steps
+Step 123, piece:, j, moves right, 1 steps
+Step 124, piece:, a, moves down, 1 steps
+Step 125, piece:, i, moves left, 1 steps
+Step 126, piece:, l, moves down, 1 steps
+Step 127, piece:, h, moves down, 1 steps
+Step 128, piece:, g, moves left, 1 steps
+Step 129, piece:, b, moves down, 1 steps
+Step 130, piece:, e, moves right, 2 steps
+Step 131, piece:, g, moves up, 1 steps
+Step 132, piece:, b, moves left, 2 steps
+Step 133, piece:, h, moves up, 2 steps
+Step 134, piece:, j, moves right, 1 steps
+Step 135, piece:, l, moves up, 1 steps
+Step 136, piece:, j, moves up, 1 steps
+Step 137, piece:, m, moves up, 1 steps
+Step 138, piece:, m, moves left, 1 steps
+Step 139, piece:, j, moves down, 1 steps
+Step 140, piece:, i, moves right, 2 steps
+Step 141, piece:, m, moves up, 1 steps
+Step 142, piece:, m, moves left, 1 steps
+Step 143, piece:, i, moves left, 1 steps
+Step 144, piece:, j, moves left, 1 steps
+Step 145, piece:, h, moves down, 2 steps
+Step 146, piece:, l, moves right, 1 steps
+Step 147, piece:, l, moves up, 1 steps
+Step 148, piece:, b, moves right, 2 steps
+Step 149, piece:, m, moves up, 1 steps
+Step 150, piece:, a, moves up, 1 steps
+Step 151, piece:, d, moves up, 1 steps
+Step 152, piece:, f, moves left, 1 steps
+Step 153, piece:, c, moves left, 1 steps
+Step 154, piece:, h, moves down, 2 steps
+Step 155, piece:, i, moves right, 1 steps
+Step 156, piece:, j, moves left, 1 steps
+Step 157, piece:, i, moves down, 1 steps
+Step 158, piece:, b, moves down, 1 steps
+Step 159, piece:, m, moves right, 3 steps
+Step 160, piece:, e, moves down, 1 steps
+Step 161, piece:, g, moves right, 2 steps
+Step 162, piece:, a, moves up, 1 steps
+Step 163, piece:, b, moves left, 1 steps
+Step 164, piece:, m, moves down, 1 steps
+Step 165, piece:, e, moves right, 1 steps
+Step 166, piece:, a, moves right, 1 steps
+Step 167, piece:, d, moves up, 3 steps
+Step 168, piece:, j, moves left, 1 steps
+Step 169, piece:, i, moves left, 1 steps
+Step 170, piece:, m, moves down, 1 steps
+Step 171, piece:, b, moves right, 1 steps
+Step 172, piece:, j, moves up, 1 steps
+Step 173, piece:, i, moves left, 2 steps
+Step 174, piece:, m, moves left, 2 steps
+Step 175, piece:, k, moves left, 1 steps
+Step 176, piece:, m, moves down, 1 steps
+Step 177, piece:, i, moves right, 3 steps
+Step 178, piece:, j, moves down, 1 steps
+Step 179, piece:, b, moves left, 2 steps
+Step 180, piece:, i, moves up, 1 steps
+Step 181, piece:, j, moves right, 3 steps
+Step 182, piece:, m, moves up, 1 steps
+Step 183, piece:, m, moves left, 2 steps
+Step 184, piece:, j, moves left, 2 steps
+Step 185, piece:, h, moves up, 1 steps
+Step 186, piece:, c, moves up, 1 steps
+Step 187, piece:, f, moves right, 3 steps
+Step 188, piece:, k, moves down, 1 steps
+Step 189, piece:, k, moves right, 1 steps
+Step 190, piece:, m, moves down, 2 steps
+Step 191, piece:, j, moves left, 1 steps
+Step 192, piece:, j, moves down, 1 steps
+Step 193, piece:, b, moves down, 1 steps
+Step 194, piece:, i, moves left, 3 steps
+Step 195, piece:, e, moves down, 1 steps
+Step 196, piece:, l, moves down, 1 steps
+Step 197, piece:, l, moves left, 1 steps
+Step 198, piece:, e, moves left, 1 steps
+Step 199, piece:, h, moves up, 3 steps
+Step 200, piece:, c, moves right, 1 steps
+Step 201, piece:, c, moves up, 1 steps
+Step 202, piece:, j, moves right, 3 steps
+Step 203, piece:, b, moves down, 1 steps
+Step 204, piece:, i, moves down, 1 steps
+Step 205, piece:, e, moves left, 2 steps
+Step 206, piece:, c, moves left, 1 steps
+Step 207, piece:, h, moves down, 2 steps
+Step 208, piece:, l, moves right, 1 steps
+Step 209, piece:, l, moves up, 1 steps
+Step 210, piece:, h, moves up, 1 steps
+Step 211, piece:, c, moves up, 1 steps
+Step 212, piece:, j, moves up, 1 steps
+Step 213, piece:, b, moves right, 1 steps
+Step 214, piece:, i, moves right, 1 steps
+Step 215, piece:, m, moves up, 2 steps
+Step 216, piece:, b, moves left, 1 steps
+Step 217, piece:, f, moves up, 1 steps
+Step 218, piece:, k, moves right, 2 steps
+Step 219, piece:, b, moves down, 1 steps
+Step 220, piece:, f, moves left, 2 steps
+Step 221, piece:, k, moves up, 1 steps
+Step 222, piece:, b, moves right, 1 steps
+
+
+
+['O', 'O', 'O', 'O', 'O', 'O', 'O']
+['O', 'd', 'a', 'g', 'g', 'l', 'O']
+['O', 'd', 'a', 'a', 'c', 'h', 'O']
+['O', 'e', 'e', 'c', 'c', 'h', 'O']
+['O', 'm', 'i', 'i', 'j', 'j', 'O']
+['O', '0', 'f', 'f', 'k', 'k', 'O']
+['O', '0', 'b', 'b', 'b', '0', 'O']
+['O', 'O', 'O', 'O', 'O', 'O', 'O']
+defectiveness: 1.0
+Seen size 2815535

@@ -7,31 +7,45 @@ import random
 # global variable to define the amount of random
 # movements when the option is chosen.
 g_random_moves = 1000
-PENALTY_DIVISION = 10000
-
 class Board:
     """
     A class representing a Board filled with blocks.
     - 'board' contains the data of the board.
+    For deduction we can state that: for the board
+    to be solved this constraints need satisfied:
+    1 - Piece B needs to occupy [(2,4),(2,5),(3,4),(3,5)]
+    down and centered.
+    2 - Which leaves, all E coordinates must be above (4,X)
+    Therefore the first objective is to move Piece E above B
     """
+
+    board_9 = [['O', 'O', 'O', 'O', 'O', 'O'],
+                ['O', 'a', 'b', 'b', 'c', 'O'],
+                ['O', 'a', 'b', 'b', 'c', 'O'],
+                ['O', 'd', 'e', 'e', 'f', 'O'],
+                ['O', 'd', 'g', 'h', 'f', 'O'],
+                ['O', 'd', 'g', 'h', 'f', 'O'],
+                ['O', 'i', '0', '0', 'j', 'O'],
+                ['O', 'O', 'O', 'O', 'O', 'O']]
     
+    board_10 = [['O', 'O', 'O', 'O', 'O', 'O', 'O'],
+                ['O', 'a', 'b', 'b', 'b', 'c', 'O'],
+                ['O', 'a', 'a', 'd', 'c', 'c', 'O'],
+                ['O', 'e', 'e', 'd', 'g', 'g', 'O'],
+                ['O', 'j', 'j', 'h', 'f', 'f', 'O'],
+                ['O', 'i', 'i', 'h', 'k', 'k', 'O'],
+                ['O', 'l', '0', '0', '0', 'm', 'O'],
+                ['O', 'O', 'O', 'O', 'O', 'O', 'O']]
+
     def __init__(self):
-        self.board = [['O', 'O', 'O', 'O', 'O', 'O', 'O'],
-                    ['O', 'a', 'b', 'b', 'b', 'c', 'O'],
-                    ['O', 'a', 'a', 'd', 'c', 'c', 'O'],
-                    ['O', 'e', 'e', 'd', 'g', 'g', 'O'],
-                    ['O', 'e', 'e', 'h', 'g', 'g', 'O'],
-                    ['O', 'j', 'j', 'h', 'f', 'f', 'O'],
-                    ['O', 'i', 'i', 'n', 'k', 'k', 'O'],
-                    ['O', 'l', '0', '0', '0', 'm', 'O'],
-                    ['O', 'O', 'O', 'O', 'O', 'O', 'O']]
+        self.board = Board.board_9
         self.objetive_position = [2, len(self.board) - 2]
         self.resetCache()
         self.pieces = {}
         self.hashes = {}
         self.computePieces()
         
-        Board.oppositeDirection = {'u':'d','d':'u','l':'r','r':'l'}
+        Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l'}
 
     def resetCache(self):
         self._defective = 10000000
@@ -72,26 +86,23 @@ class Board:
         to ensure there won't be a clash.
         """
         # unique ones
-        l = self.pieceHash('l')
-        m = self.pieceHash('m')
-        n = self.pieceHash('n')
-    
-        i = self.pieceHash('i')
-        k = self.pieceHash('k')
         g = self.pieceHash('g')
-        e = self.pieceHash('e')
-        f = self.pieceHash('f')
-        j = self.pieceHash('j')
-    
         h = self.pieceHash('h')
-        d = self.pieceHash('d')
-    
+        i = self.pieceHash('i')
+        j = self.pieceHash('j')
+
         # two vertical
         a = self.pieceHash('a')
         c = self.pieceHash('c')
+        d = self.pieceHash('d')
+        f = self.pieceHash('f')
 
+        # two horizontal
+        e = self.pieceHash('e')
+
+        # two by two
         b = self.pieceHash('b')
-        return hash((l*m*n, i*k*g*e*f*j, h*d, a*c,b))
+        return hash((g * h * i * j, a * c * d * f, e, b))
 
     @property
     def b_defective(self):
@@ -99,15 +110,8 @@ class Board:
         returns how far is b from final position
         """
         b_first_corner = self.pieces['b'][0]
-        b_distance_to_objective = [0,0]
-        b_distance_to_objective[0] = self.objetive_position[0] - b_first_corner[0]
-        b_distance_to_objective[1] = self.objetive_position[1] - b_first_corner[1]
-        if 2 + b_first_corner[1] < self.objetive_position[1]:
-            return  b_distance_to_objective[1] * 2
-        
-        result = math.sqrt(b_distance_to_objective[0]**2 + b_distance_to_objective[1]**2) * 2
-        return result
-    
+        return math.sqrt((self.objetive_position[0] - b_first_corner[0])**2 + (self.objetive_position[1] - b_first_corner[1])**2)
+
     @property
     def defective(self):
         """
@@ -122,13 +126,10 @@ class Board:
         defective = self.b_defective
     
         b_first_corner = self.pieces['b'][0]
+        if 'e' in self.pieces:
+            e_first_corner = self.pieces['e'][0]
+            defective += max(abs(b_first_corner[1] - e_first_corner[1]), 0) / 2.0
 
-        incompatibles = ['a','c','i','g','k','e','f','j']
-        for incompatible in incompatibles:
-            bad_first_corner = self.pieces[incompatible][0]
-            if bad_first_corner >= b_first_corner:
-                defective += 2 / len(incompatibles)
-        
         self._defective = defective
         return defective
 
@@ -295,7 +296,8 @@ class moveNode:
     """
     # a set of hashes for all the seen boards
     seen = set()
-    names = {'d': 'down', 'u': 'up', 'l': 'left', 'r': 'right'}
+    names = {'d': 'down', 'u': 'up', 'l': 'left', 'r': 'right',
+            'dt': 'down twice', 'ut': 'up twice', 'lt': 'left twice', 'rt': 'right twice'}
 
     def __init__(self, board, parent=None, moves=None):
         self.board = board
@@ -315,7 +317,7 @@ class moveNode:
 
     @property
     def penalty(self):
-        return (self.deep/PENALTY_DIVISION) + self.board.defective
+        return (self.deep/13.1) + self.board.defective
 
     def flattenMoves(self):
         """
@@ -359,7 +361,7 @@ class moveNode:
 
                 for step, m in enumerate(moveInstructions):
                     name = moveNode.names[m[1][0]]
-                    print (f"Step:{(step + 1)}, piece:{m[0]}, moves:{name}, nSteps:{m[1][1]}, moveNode_penalty:{moveNode.penalty}, defective:{self.board.defective}")
+                    print (f"Step {(step + 1)}, piece:, {m[0]}, moves {name}, {m[1][1]} steps")
 
                 return None
 
