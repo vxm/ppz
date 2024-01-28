@@ -16,16 +16,26 @@ class Board:
     - 'board' contains the data of the board.
     """
     
+    board_9 = [['O', 'O', 'O', 'O', 'O', 'O'],
+                ['O', 'a', 'b', 'b', 'c', 'O'],
+                ['O', 'a', 'b', 'b', 'c', 'O'],
+                ['O', 'd', 'e', 'e', 'f', 'O'],
+                ['O', 'd', 'g', 'h', 'f', 'O'],
+                ['O', 'd', 'g', 'h', 'f', 'O'],
+                ['O', 'i', '0', '0', 'j', 'O'],
+                ['O', 'O', 'O', 'O', 'O', 'O']]
+    
+    board_10 = [['O', 'O', 'O', 'O', 'O', 'O', 'O'],
+                ['O', 'a', 'b', 'b', 'b', 'c', 'O'],
+                ['O', 'a', 'a', 'd', 'c', 'c', 'O'],
+                ['O', 'e', 'e', 'd', 'g', 'g', 'O'],
+                ['O', 'j', 'j', 'h', 'f', 'f', 'O'],
+                ['O', 'i', 'i', 'h', 'k', 'k', 'O'],
+                ['O', 'l', '0', '0', '0', 'm', 'O'],
+                ['O', 'O', 'O', 'O', 'O', 'O', 'O']]
+    
     def __init__(self):
-        self.board = [['O', 'O', 'O', 'O', 'O', 'O', 'O'],
-                    ['O', 'a', 'b', 'b', 'b', 'c', 'O'],
-                    ['O', 'a', 'a', 'd', 'c', 'c', 'O'],
-                    ['O', 'e', 'e', 'd', 'g', 'g', 'O'],
-                    ['O', 'e', 'e', 'h', 'g', 'g', 'O'],
-                    ['O', 'j', 'j', 'h', 'f', 'f', 'O'],
-                    ['O', 'i', 'i', 'n', 'k', 'k', 'O'],
-                    ['O', 'l', '0', '0', '0', 'm', 'O'],
-                    ['O', 'O', 'O', 'O', 'O', 'O', 'O']]
+        self.board = Board.board_10
         self.objetive_position = [2, len(self.board) - 2]
         self.resetCache()
         self.pieces = {}
