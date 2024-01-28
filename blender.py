@@ -3,7 +3,7 @@ import copy
 import functools
 import math
 import random
-
+import json
 import bpy
 
 bpy.context.scene.frame_set(0)
@@ -28,7 +28,7 @@ def keyLocation(pieceName):
     bpy.ops.anim.keyframe_insert_by_name(type="Location")
 
 def keyAll():
-    for k in range(0,10):
+    for k in range(0,14):
         keyLocation(chr(k+ord("a")))
 
 
@@ -46,440 +46,64 @@ def move(piece, direction, amount):
                                 use_proportional_projected=False,
                                 release_confirm=True)
 
-ntt = 10
-def left(piece):
-    advanceTime(ntt)
-    move(piece, [1,0], -2)
+
+def left(piece, amount, nnt):
+    advanceTime(nnt)
+    move(piece, [1,0], -2 * amount)
     keyAll()
 
-def right(piece):
-    advanceTime(ntt)
-    move(piece, [1,0], 2)
+def right(piece, amount, nnt):
+    advanceTime(nnt)
+    move(piece, [1,0], 2 * amount)
     keyAll()
 
-def down(piece):
-    advanceTime(ntt)
-    move(piece, [0,1], -2)
+def down(piece, amount, nnt):
+    advanceTime(nnt)
+    move(piece, [0,1], -2 * amount)
     keyAll()
 
-def up(piece):
-    advanceTime(ntt)
-    move(piece, [0,1], 2)
+def up(piece, amount, nnt):
+    advanceTime(nnt)
+    move(piece, [0,1], 2 * amount)
     keyAll()
 
 
-# global variable to define the amount of random
-# movements when the option is chosen.
-g_random_moves = 10000
-class Board:
-    """
-    A class representing a Board filled with blocks.
-    - 'board' contains the data of the board.
-    For deduction we can state that: for the board
-    to be solved this constraints need satisfied:
-    1 - Piece B needs to occupy [(2,4),(2,5),(3,4),(3,5)]
-    down and centered.
-    2 - Which leaves, all E coordinates must be above (4,X)
-    Therefore the first objective is to move Piece E above B
-    """
-    def __init__(self):
-        self.board = [['O', 'O', 'O', 'O', 'O', 'O'],
-                      ['O', 'a', 'b', 'b', 'c', 'O'],
-                      ['O', 'a', 'b', 'b', 'c', 'O'],
-                      ['O', 'd', 'e', 'e', 'f', 'O'],
-                      ['O', 'd', 'g', 'h', 'f', 'O'],
-                      ['O', 'i', '0', '0', 'j', 'O'],
-                      ['O', 'O', 'O', 'O', 'O', 'O']]
-        self.resetCache()
-        self.pieces = {}
-        self.hashes = {}
-        self.computePieces()
-        Board.oppositeDirection = { 'u':'d','d':'u','l':'r','r':'l',
-                                'ut':'dt','dt':'ut','lt':'rt','rt':'lt' }
+def read_and_process_moves(json_file):
+    try:
+        with open(json_file, 'r') as file:
+            data = json.load(file)
+            moves = data.get('moves', [])
 
-    def resetCache(self):
-        self._defective = 10000000
-
-    def computePieces(self):
-        """
-        computes the pieces and where they can be found.
-        """
-        # initialising the pieces dictionary with
-        # empty arrays
-        for line in self.board:
-            for p in line:
-                if p.islower():
-                    self.pieces[p] = []
-
-        # adding coordinates to those pieces.
-        for y, line in enumerate(self.board):
-            for x, element in enumerate(line):
-                if element in self.pieces:
-                    self.pieces[element].append([x, y])
-
-        for k in self.pieces.keys():
-            self.hashes[k] = self.pieceHash(k)
-
-    def pieceHash(self, piece):
-        if piece in self.pieces.keys():
-            pieceCoordinates = self.pieces[piece][0]
-            return hash((pieceCoordinates[0]*9757157, pieceCoordinates[1]))
-        return 1234567
-
-    @property
-    def hash(self):
-        """
-        Returns the hash from the tuple of first coordinates of each piece,
-        given they cannot rotate, that defines their unique value.
-        The hash for each piece coordinate is computed multiplying the first
-        coordinate by length of the board adding the second coordinate,
-        to ensure there won't be a clash.
-        """
-        # unique ones
-        g = self.pieceHash('g')
-        h = self.pieceHash('h')
-        i = self.pieceHash('i')
-        j = self.pieceHash('j')
-
-        # two vertical
-        a = self.pieceHash('a')
-        c = self.pieceHash('c')
-        d = self.pieceHash('d')
-        f = self.pieceHash('f')
-
-        # two horizontal
-        e = self.pieceHash('e')
-
-        # two by two
-        b = self.pieceHash('b')
-        return hash((g * h * i * j, a * c * d * f, e, b))
-
-    @property
-    def b_defective(self):
-        """
-        returns how far is b from final position
-        """
-        b_first_corner = self.pieces['b'][0]
-        objetive_position = [2, len(self.board) - 3]
-        return math.sqrt((objetive_position[0] - b_first_corner[0])**2 + (objetive_position[1] - b_first_corner[1])**2)
-
-    @property
-    def defective(self):
-        """
-        returns the value accumulating two factors representing
-        how far is this board from the final solution:
-            - how far is b from final position
-            - how much e up relative to b
-        """
-        if self._defective != 10000000:
-            return self._defective
-
-        defective = self.b_defective
-        for p in ['e']:
-            if p in self.pieces.keys():
-                b_first_corner = self.pieces['b'][0]
-                e_first_corner = self.pieces[p][0]
-                defective += max(abs(b_first_corner[1] - e_first_corner[1]), 0) / 2.0
-
-        self._defective = defective
-        return defective
-
-    @property
-    def done(self):
-        """
-        returns True if this board got to its objective.
-        """
-        return self.b_defective == 0.0
-
-    def printState(self):
-        """
-        Prints the board on it's current state.
-        """
-        for line in self.board:
-            print(line)
-        print("defectiveness:", self.defective)
-
-    def e(self, x, y):
-        """
-        Returns the element at the given coordinates.
-        """
-        return self.board[y][x]
-
-    def setE(self, x, y, v):
-        """
-        Sets the element at the given coordinates.
-        """
-        self.board[y][x] = v
-
-    def empty(self, x, y):
-        """
-        Returns if the element at the given coordinates represents
-        an empty space.
-        """
-        return self.e(x, y) == '0'
-
-    def piecePossibleMoves(self, piece, coordn):
-        """
-        returns whether or not the is empty spaces in all directions
-        relative to coordn (coordinates)
-        example of input coordn.
-        [[2, 1], [3, 1], [2, 2], [3, 2]]
-        example of returned value:
-            {'u': True, 'd': False, 'l': False, 'r': False}, True
-        for a piece that can only move up, can be moved (last ret)
-        """
-        moves = {'u': False, 'd': False, 'l': False, 'r': False,
-                'ut': False, 'dt': False, 'lt': False, 'rt': False}
-
-        moves['l'] = all([self.empty(c[0] - 1, c[1])
-            or self.e(c[0] - 1, c[1]) == piece for c in coordn])
-
-        if moves['l']:
-            moves['lt'] = all([self.empty(c[0] - 2, c[1])
-                or self.e(c[0] - 2, c[1]) == piece for c in coordn])
-
-        moves['r'] = all([self.empty(c[0] + 1, c[1])
-            or self.e(c[0] + 1, c[1]) == piece for c in coordn])
-
-        if moves['r']:
-            moves['rt'] = all([self.empty(c[0] + 2, c[1])
-                or self.e(c[0] + 2, c[1]) == piece for c in coordn])
-
-        moves['u'] = all([self.empty(c[0], c[1] - 1)
-            or self.e(c[0], c[1] - 1) == piece for c in coordn])
-
-        if moves['u']:
-            moves['ut'] =  all([self.empty(c[0], c[1] - 2)
-                or self.e(c[0], c[1] - 2) == piece for c in coordn])
-
-        moves['d'] = all([self.empty(c[0], c[1] + 1)
-            or self.e(c[0], c[1] + 1) == piece for c in coordn])
-
-        if moves['d']:
-            moves['dt']= all([self.empty(c[0], c[1] + 2)
-                or self.e(c[0], c[1] + 2) == piece for c in coordn])
-
-        can_move = any([moves['l'], moves['r'], moves['u'], moves['d'],
-                        moves['lt'], moves['rt'], moves['ut'], moves['dt']])
-
-        return moves, can_move
-
-    def posibleMoves(self):
-        """
-        returns only the pieces that can move and their movable direction.
-        a possible return value would be like this:
-        {'g': ['d'], 'h': ['d'], 'i': ['r'], 'j': ['l']}
-        for piece 'g' can move down, 'h' can move down, 'i' can move right
-        and 'j' can move left.
-        """
-        moves = {}
-        for p, c in self.pieces.items():
-            allMoves, canMove = self.piecePossibleMoves(p, c)
-            if canMove:
-                moves[p] = [k for k, v in allMoves.items() if v]
-        return moves
-
-    def move(self, pieceName, direction):
-        """
-        Updates two elements on each call.
-        - the board itself.
-        - each coordinate of the piece
-        """
-        for c in self.pieces[pieceName]:
-            self.setE(c[0], c[1], '0')
-
-        if direction == 'u':
-            for coor in self.pieces[pieceName]:
-                coor[1] -= 1
-
-        if direction == 'd':
-            for coor in self.pieces[pieceName]:
-                coor[1] += 1
-
-        if direction == 'l':
-            for coor in self.pieces[pieceName]:
-                coor[0] -= 1
-
-        if direction == 'r':
-            for coor in self.pieces[pieceName]:
-                coor[0] += 1
-
-        if direction == 'ut':
-            for coor in self.pieces[pieceName]:
-                coor[1] -= 2
-
-        if direction == 'dt':
-            for coor in self.pieces[pieceName]:
-                coor[1] += 2
-
-        if direction == 'lt':
-            for coor in self.pieces[pieceName]:
-                coor[0] -= 2
-
-        if direction == 'rt':
-            for coor in self.pieces[pieceName]:
-                coor[0] += 2
-
-        for c in self.pieces[pieceName]:
-            self.setE(c[0], c[1], pieceName)
-
-        self.hashes[pieceName] = self.pieceHash(pieceName)
-
-    def simulateMove(self, pieceName, direction):
-        """
-        emulates the move requested to identify
-        properties of the possible table.
-        """
-        # do
-        self.move(pieceName, direction)
-        # store temp data
-        h = self.hash
-        d = self.done
-        # undo
-        self.move(pieceName, Board.oppositeDirection[direction])
-        return h, d
-
-class moveNode:
-    """
-    A class representing all possible moves in a board
-    at a given state.
-    {'g': ['d'], 'h': ['d'], 'i': ['r'], 'j': ['l']}
-    """
-    # a set of hashes for all the seen boards
-    seen = set()
-    names = {'d': 'down', 'u': 'up', 'l': 'left', 'r': 'right',
-            'dt': 'down twice', 'ut': 'up twice', 'lt': 'left twice', 'rt': 'right twice'}
-
-    def __init__(self, board, parent=None, moves=None):
-        self.board = board
-        self.parent = parent
-        self.moves = moves
-        moveNode.seen.add(board.hash)
-        self.playableMoves = []
-        self.flattenMoves()
-        if parent is not None:
-            self._deep = parent.deep + 1
-        else:
-            self._deep = 0
-
-    @property
-    def deep(self):
-        return self._deep
-
-    @property
-    def penalty(self):
-        return (self.deep/13.1) + self.board.defective
-
-    def flattenMoves(self):
-        """
-        Obtains the possible moves on the board
-        and stripes them on unit possible moves.
-        """
-        for pieceName, directions in self.board.posibleMoves().items():
-            for direction in directions:
-                self.playableMoves.append([None, [pieceName, direction]])
-
-    def nodeMoves(self):
-        """
-        runs through the sequence of possible moves, and
-        if there is novelty, creates this object for the move.
-        finally returns the movements that could happen at
-        this moment for the current board.
-        """
-        nodes = []
-        # print("new child")
-        for i, (_, (piece, direction)) in enumerate(self.playableMoves):
-            # we simulate the move in place
-            hashr, done = self.board.simulateMove(piece, direction)
-            # if the result of the similation was
-            # previously visited we skip this step
-            if hashr in moveNode.seen:
-                continue
-
-            # print("\tnovel move: "+ piece +" "+direction)
-            if done:
-                # a bit of a celebration here!.
-                print('\n\n-----------*****************************-----------')
-                print('-----------* This solves the problem! **-----------')
-                print('-----------*****************************-----------\n\n')
-                self.board.move(piece, direction)
-                moveInstructions = [[piece,direction]]
-                parentIt = self
-                while parentIt:
-                    # while still don't reach the root
-                    if parentIt.moves:
-                        moveInstructions.insert(0, parentIt.moves)
-                    parentIt = parentIt.parent
-
-                for step, m in enumerate(moveInstructions):
-                    direction = moveNode.names[m[1]]
-
-                    if direction == "down":
-                        down(m[0])
-
+            for move in moves:
+                if len(move) == 4:
+                    number, piece, direction, amount = move
+                    print(f"Move {number}: Piece '{piece}', Direction '{direction}', Amount {amount}")
+                    amount = int(amount)
+                    advance_frames = 5
+                    if piece == "advance_frames":
+                        advance_frames += 4
                     if direction == "up":
-                        up(m[0])
-
+                        up(piece, amount, advance_frames + amount)
+                    if direction == "down":
+                        down(piece, amount, advance_frames + amount)
                     if direction == "left":
-                        left(m[0])
-
+                        left(piece, amount, advance_frames + amount)
                     if direction == "right":
-                        right(m[0])
+                        right(piece, amount, advance_frames + amount)
+                else:
+                    print("Invalid move format")
+    except FileNotFoundError:
+        print("File not found")
+    except json.JSONDecodeError:
+        print("Error decoding JSON")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
-                    if direction == "down twice":
-                        down(m[0])
-                        down(m[0])
+# Replace 'your_file.json' with the path to your JSON file
+json_file = '/Users/mariano/code/GitHub/ppz/impossible_as_list.json'
 
-                    if direction == "up twice":
-                        up(m[0])
-                        up(m[0])
-
-                    if direction == "left twice":
-                        left(m[0])
-                        left(m[0])
-
-                    if direction == "right twice":
-                        right(m[0])
-                        right(m[0])
-
-                return [[None, [piece,direction]]]
-
-            newBoard = copy.deepcopy(self.board)
-            newBoard.move(piece, direction)
-            self.playableMoves[i][0] = moveNode(newBoard, self, [piece,direction])
-
-        cleanedSequence = [s for s in self.playableMoves if s[0] is not None]
-        return cleanedSequence
-
-@functools.total_ordering
-class Node:
-    def __init__(self, node):
-        self.node = node
-        self.penalty = node.penalty
-    def __lt__(self, other):
-        return self.penalty < other.penalty
-    def __str__(self):
-        return '{} {}'.format(self.node, self.penalty)
-
-
-def solveAndAnimateBoard():
-    """
-    This function allows you to play with a board and visualize the results
-    """
-    myboard = Board()
-
-    queue = [[moveNode(myboard), ['', '']]]
-    found = False
-    while len(queue) and not found:
-        queuedNode = queue.pop(0)[0]
-
-        for ns in queuedNode.nodeMoves():
-            if not ns[0]:
-                print('\n\n')
-                queuedNode.board.printState()
-                found = True
-                return
-            queue.append(ns)
-        queue.sort(key=lambda x: x[0].penalty)
-
-solveAndAnimateBoard()
+for k in range(0,14):
+    keyLocation(chr(k+ord("a")))
+advanceTime(10)
+    
+read_and_process_moves(json_file)

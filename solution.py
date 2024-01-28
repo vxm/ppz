@@ -8,7 +8,7 @@ import time
 # global variable to define the amount of random
 # movements when the option is chosen.
 g_random_moves = 1000
-PENALTY_DIVISION = 100000
+PENALTY_DIVISION = .1
 
 class Board:
     """
@@ -360,7 +360,7 @@ class moveNode:
 
                 for step, m in enumerate(moveInstructions):
                     name = moveNode.names[m[1][0]]
-                    print (f"Step:{(step + 1)}, piece:{m[0]}, moves:{name}, nSteps:{m[1][1]}, moveNode_penalty:{moveNode.penalty}, defective:{self.board.defective}")
+                    print (f"Step:{(step + 1)}: piece:{m[0]}: moves:{name}: nSteps:{m[1][1]}:")
 
                 return None
 
